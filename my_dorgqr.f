@@ -125,6 +125,7 @@
 *
 *  =====================================================================
       SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO )
+      IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -200,6 +201,7 @@
 *        Determine when to cross over from blocked to unblocked code.
 *
          NX = MAX( 0, ILAENV( 3, 'DORGQR', ' ', M, N, K, -1 ) )
+         NX = 0
          IF( NX.LT.K ) THEN
 *
 *           Determine if workspace is large enough for blocked code.
@@ -235,32 +237,32 @@
       ELSE
          KK = 0
       END IF
-*       Form the triangular factor of the block reflector
-*       H = H(kk+1) H(kk+2) . . . H(k)
 *
-      CALL DLARFT( 'Forward', 'Columnwise', M-KK, M-KK,
-     $             A( KK+1, KK+1 ), LDA, TAU( KK+1 ), WORK, LDWORK )
-*
-*     Apply H to A(kk+1:m,kk+1:n) from the left
-*
-      CALL DLARFB( 'Left', 'No transpose', 'Forward',
-     $             'Columnwise', M-KK, N-KK, M -KK,
-     $             A( KK+1, KK+1 ), LDA, WORK, LDWORK, A( KK, N ),
-     $             LDA, WORK(N-KK), LDWORK )
-*
-*           Apply H to rows i:m of current block
-*
-            CALL DORG2R( M-KK, N-KK, N-KK, A( KK, KK ), LDA, TAU( KK),
-     $                   WORK, IINFO )
-
 *     Use unblocked code for the last or only block.
 *
-*     Want this to be only KK.EQ.0 in the end 
-*     so that we only do this for the unblocked
-*     version
-      IF( KK.EQ.0 )
-     $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
-     $                TAU( KK+1 ), WORK, IINFO )
+      IF( KK.EQ.0 ) THEN
+        CALL DORG2R( M, N, K, A( 1, 1 ), LDA,
+     $                TAU( 1 ), WORK, IINFO )
+      ELSE
+*       Set the bottom block to be I with 0s above
+*
+*       Form the triangular factor of the block reflector
+*       H = H(kk+1) H(kk+2) . . . H(k)
+*       Note: May need to move to start at A(KK,KK)
+        IB = K - KK + 1
+        CALL DLARFT( 'Forward', 'Columnwise', M - KK, IB,
+     $               A(KK + 1, KK + 1), LDA, TAU(KK + 1), WORK,
+     $               LDWORK )
+
+*       Apply H to A(kk+1:m, k:n)
+        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise', 
+     $               M - KK, N - K, IB, A( KK+1, KK+1), LDA, WORK,
+     $               LDWORK, A( KK, K), LDA, WORK(IB + 1), LDWORK)
+
+*       Apply H to rows kk+1:m of the current block        
+        CALL DORG2R( M - KK, IB, IB, A(KK+1,KK+1), LDA, TAU(KK + 1),
+     $               WORK, IINFO )
+      END IF
 *
       IF( KK.GT.0 ) THEN
 *
