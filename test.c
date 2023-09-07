@@ -18,7 +18,7 @@
 int main(int argc, char **argv) {
 
     // Local params
-    int info, lda, ldq, m, n, lwork;
+    int info, lda, ldq, m, n, lwork, nb;
     double *A, *Q, *As, *tau, *work=NULL;
     double normA;
     double elapsed_refL, perform_refL;
@@ -30,8 +30,9 @@ int main(int argc, char **argv) {
 
     // Default parameters to ensure that we hit 
     // the blocked code
-    m = 400;
-    n = 260;
+    m = 30;
+    n = 20;
+    nb = 7; // Choose a default nb value that is NOT a factor of m nor n
     lda = -1;
     ldq = -1;
 
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
     // Directly calling the fortran function dorgqr
     //dorgqr_(&m, &n, &n, Q,&ldq, tau, work, &lwork, &info);
     // Directly calling my fortran function my_dorgqr
-    my_dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    my_dorgqr_(&m, &n, &n, &nb, Q, &ldq, tau, work, &lwork, &info);
 
     gettimeofday(&tp, NULL);
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);

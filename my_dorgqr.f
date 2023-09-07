@@ -124,7 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO )
+      SUBROUTINE MY_DORGQR( M, N, K, NB, A, LDA, TAU, WORK, LWORK, INFO)
       IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
@@ -158,13 +158,18 @@
 *     .. External Functions ..
       INTEGER            ILAENV
       EXTERNAL           ILAENV
+
 *     ..
 *     .. Executable Statements ..
 *
 *     Test the input arguments
 *
       INFO = 0
-      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
+*      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
+*
+*     Debugging purposes
+*
+      
       LWKOPT = MAX( 1, N )*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
@@ -236,7 +241,6 @@
         CALL DORG2R( M, N, K, A( 1, 1 ), LDA,
      $                TAU( 1 ), WORK, IINFO )
       END IF
-*
       IF( KK.GT.0 ) THEN
 *       First set our matrix to be of the form
 *       —————
@@ -250,28 +254,37 @@
    10     CONTINUE
           A( J, J ) = ONE
    20   CONTINUE
-*
-*       Compute the block size of k - (kk + 1) + 1
-*
-        IB = K - KK
-*
 *       Form the triangular factor of the block reflector
 *       H = H(kk+1) H(kk+2) . . . H(k)
-*
+*       Note: May need to move to start at A(KK,KK)
+        IB = K - KK
         CALL DLARFT( 'Forward', 'Columnwise', M - KK, IB,
      $               A(KK + 1, KK + 1), LDA, TAU(KK + 1), WORK,
      $               LDWORK )
-*
-*       Apply H to A(kk+1:m, k:n)
-*
 
-        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise',
-     $               M - KK, N - K, IB, A( KK+1, KK+1), LDA, WORK,
-     $               LDWORK, A( KK, K), LDA, WORK(IB + 1), LDWORK)
-*       Side = 'L' Trans = 'N' Direct='F' STOREV='C'
-*       M = M-KK, N = N-KK, K = IB, V = A(KK+1,KK+1), LDV = LDA,
-*       T = WORK, LDT = LDWORK, C = A(KK, K), LDC = LDA,
-*       WORK = WORK( IB + 1 ), LDWORK = LDWORK
+*       Apply H to A(kk+1:m, k:n)
+*        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise', 
+*     $               M - KK, N - K, IB, A( KK+1, KK+1), LDA, WORK,
+*     $               LDWORK, A( KK, K), LDA, WORK(IB + 1), LDWORK)
+*        SIDE = 'L'
+*        TRANS = 'N', so TRANST = 'T'
+*        DIRECT = 'F'
+*        STOREV = 'C'
+*        MT = M - KK
+*        NT = N - K
+*        K = IB
+*        V = A(KK+1,KK+1)
+*        note: V(i,j) = A(KK + 1 + i, KK + 1 + j)
+*        LDV = LDA
+*        T = WORK
+*        note: T(i,j) = WORK(i + j * LDWORK)
+*        LDT = LDWORK
+*        C = A(KK,K)
+*        note: C(i,j) = A(KK + i, K + j)
+*        LDC = LDA
+*        WORK = WORK(IB + 1)
+*        note: WORK(i,j) = WORK(IB + 1 + i + j * ldwork)
+*        LDWORKT = LDWORK
 *
 *              Form  H * C  or  H**T * C  where  C = ( C1 )
 *                                                    ( C2 )
@@ -280,57 +293,62 @@
 *
 *              W := C1**T
 *
-*               DO 10 J = 1, K
-*                  CALL DCOPY( N - KK, A( KK + J, K + 1 ), LDC, 
-*     $                        WORK( 1, J ), 1 )
-*   10          CONTINUE
+        DO 15 J = 1, IB
+            CALL DCOPY( N - K, A( KK + J, K + 1 ), LDA, 
+     $                  WORK(IB + 1 + 1 + J * LDWORK ), 1 )
+   15   CONTINUE
 *
 *              W := W * V1
 *
-*               CALL DTRMM( 'Right', 'Lower', 'No transpose', 'Unit', N,
-*     $                     K, ONE, V, LDV, WORK, LDWORK )
-*               IF( M.GT.K ) THEN
+        CALL DTRMM( 'Right', 'Lower', 'No transpose', 'Unit', 
+     $              N - KK, IB, ONE, A(KK + 1, KK + 1), LDA, 
+     $              WORK(IB + 1), LDWORK )
+        IF( M - KK.GT.IB ) THEN
 *
 *                 W := W + C2**T * V2
 *
-*                  CALL DGEMM( 'Transpose', 'No transpose', N, K, M-K,
-*     $                        ONE, C( K+1, 1 ), LDC, V( K+1, 1 ), LDV,
-*     $                        ONE, WORK, LDWORK )
-*               END IF
+           CALL DGEMM( 'Transpose', 'No transpose', N - K, IB, 
+     $                 M - KK - IB,
+     $                 ONE, A( KK + K + 1, K + 1 ), LDA, 
+     $                 A( KK + 1 + K + 1, KK + 1 + 1 ), LDA,
+     $                 ONE, WORK(IB + 1), LDWORK )
+        END IF
 *
 *              W := W * T**T  or  W * T
 *
-*               CALL DTRMM( 'Right', 'Upper', TRANST, 'Non-unit', N, K,
-*     $                     ONE, T, LDT, WORK, LDWORK )
+        CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', 
+     $              N - K, IB, ONE, WORK, LDWORK, WORK(IB + 1), LDWORK )
 *
 *              C := C - V * W**T
 *
-*               IF( M.GT.K ) THEN
+        IF( M - KK.GT.IB ) THEN
 *
 *                 C2 := C2 - V2 * W**T
 *
-*                  CALL DGEMM( 'No transpose', 'Transpose', M-K, N, K,
-*     $                        -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
-*     $                        C( K+1, 1 ), LDC )
-*               END IF
+           CALL DGEMM( 'No transpose', 'Transpose', M - KK - IB, N - K,
+     $                 IB, -ONE, A( KK + 1 + IB + 1, KK + 1 + 1 ), 
+     $                 LDA, WORK(IB + 1), LDWORK, ONE,
+     $                 A( KK + IB + 1, K + 1 ), LDA )
+        END IF
 *
 *              W := W * V1**T
 *
-*               CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
-*     $                     ONE, V, LDV, WORK, LDWORK )
+        CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N - K, IB,
+     $              ONE, A(KK + 1, KK + 1), LDA, WORK(IB + 1), LDWORK )
 *
 *              C1 := C1 - W**T
 *
-*               DO 30 J = 1, K
-*                  DO 20 I = 1, N
-*                     C( J, I ) = C( J, I ) - WORK( I, J )
-*   20             CONTINUE
-*   30          CONTINUE
-*
-*       Apply H to rows kk+1:m of the current block
-*
+        DO 35 J = 1, IB
+           DO 25 I = 1, N - K
+             A(KK + J, K + I) = A( KK + J, K + I ) - WORK(IB + 1 + I + J
+     $                                                    * LDWORK)
+   25      CONTINUE
+   35   CONTINUE
+
+*       Apply H to rows kk+1:m of the current block        
         CALL DORG2R( M - KK, IB, IB, A(KK+1,KK+1), LDA, TAU(KK + 1),
      $               WORK, IINFO )
+
          DO 50 I = KI+1, 1, -NB
             IB = MIN( NB, K-I+1 )
             IF( I+IB.LE.N ) THEN

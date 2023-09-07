@@ -5,7 +5,7 @@ default: test.exe
 my_dorgqr.o: my_dorgqr.f
 	$(FC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
 
-test.o: test.c
+test.o: test.c 
 	$(CC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
 
 test.exe: my_dorgqr.o test.o test.c
