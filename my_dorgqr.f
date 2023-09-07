@@ -141,8 +141,8 @@
 *  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION   ZERO
-      PARAMETER          ( ZERO = 0.0D+0 )
+      DOUBLE PRECISION   ZERO, ONE
+      PARAMETER          ( ZERO = 0.0D+0, ONE = 1.0D+0 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            LQUERY
@@ -226,14 +226,6 @@
 *
          KI = ( ( K-NX-1 ) / NB )*NB
          KK = MIN( K, KI+NB )
-*
-*        Set A(1:kk,kk+1:n) to zero.
-*
-         DO 20 J = KK + 1, N
-            DO 10 I = 1, KK
-               A( I, J ) = ZERO
-   10       CONTINUE
-   20    CONTINUE
       ELSE
          KK = 0
       END IF
@@ -243,31 +235,102 @@
       IF( KK.EQ.0 ) THEN
         CALL DORG2R( M, N, K, A( 1, 1 ), LDA,
      $                TAU( 1 ), WORK, IINFO )
-      ELSE
-*       Set the bottom block to be I with 0s above
-*
-*       Form the triangular factor of the block reflector
-*       H = H(kk+1) H(kk+2) . . . H(k)
-*       Note: May need to move to start at A(KK,KK)
-        IB = K - KK + 1
-        CALL DLARFT( 'Forward', 'Columnwise', M - KK, IB,
-     $               A(KK + 1, KK + 1), LDA, TAU(KK + 1), WORK,
-     $               LDWORK )
-
-*       Apply H to A(kk+1:m, k:n)
-        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise', 
-     $               M - KK, N - K, IB, A( KK+1, KK+1), LDA, WORK,
-     $               LDWORK, A( KK, K), LDA, WORK(IB + 1), LDWORK)
-
-*       Apply H to rows kk+1:m of the current block        
-        CALL DORG2R( M - KK, IB, IB, A(KK+1,KK+1), LDA, TAU(KK + 1),
-     $               WORK, IINFO )
       END IF
 *
       IF( KK.GT.0 ) THEN
+*       First set our matrix to be of the form
+*       —————
+*       |A|0|
+*       —————
+*       |A|I|
+*       —————
+        DO 20 J = KK + 1, N
+          DO 10 I = 1, M
+            A( I, J ) = ZERO
+   10     CONTINUE
+          A( J, J ) = ONE
+   20   CONTINUE
 *
-*        Use blocked code
+*       Compute the block size of k - (kk + 1) + 1
 *
+        IB = K - KK
+*
+*       Form the triangular factor of the block reflector
+*       H = H(kk+1) H(kk+2) . . . H(k)
+*
+        CALL DLARFT( 'Forward', 'Columnwise', M - KK, IB,
+     $               A(KK + 1, KK + 1), LDA, TAU(KK + 1), WORK,
+     $               LDWORK )
+*
+*       Apply H to A(kk+1:m, k:n)
+*
+
+        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise',
+     $               M - KK, N - K, IB, A( KK+1, KK+1), LDA, WORK,
+     $               LDWORK, A( KK, K), LDA, WORK(IB + 1), LDWORK)
+*       Side = 'L' Trans = 'N' Direct='F' STOREV='C'
+*       M = M-KK, N = N-KK, K = IB, V = A(KK+1,KK+1), LDV = LDA,
+*       T = WORK, LDT = LDWORK, C = A(KK, K), LDC = LDA,
+*       WORK = WORK( IB + 1 ), LDWORK = LDWORK
+*
+*              Form  H * C  or  H**T * C  where  C = ( C1 )
+*                                                    ( C2 )
+*
+*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
+*
+*              W := C1**T
+*
+*               DO 10 J = 1, K
+*                  CALL DCOPY( N - KK, A( KK + J, K + 1 ), LDC, 
+*     $                        WORK( 1, J ), 1 )
+*   10          CONTINUE
+*
+*              W := W * V1
+*
+*               CALL DTRMM( 'Right', 'Lower', 'No transpose', 'Unit', N,
+*     $                     K, ONE, V, LDV, WORK, LDWORK )
+*               IF( M.GT.K ) THEN
+*
+*                 W := W + C2**T * V2
+*
+*                  CALL DGEMM( 'Transpose', 'No transpose', N, K, M-K,
+*     $                        ONE, C( K+1, 1 ), LDC, V( K+1, 1 ), LDV,
+*     $                        ONE, WORK, LDWORK )
+*               END IF
+*
+*              W := W * T**T  or  W * T
+*
+*               CALL DTRMM( 'Right', 'Upper', TRANST, 'Non-unit', N, K,
+*     $                     ONE, T, LDT, WORK, LDWORK )
+*
+*              C := C - V * W**T
+*
+*               IF( M.GT.K ) THEN
+*
+*                 C2 := C2 - V2 * W**T
+*
+*                  CALL DGEMM( 'No transpose', 'Transpose', M-K, N, K,
+*     $                        -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
+*     $                        C( K+1, 1 ), LDC )
+*               END IF
+*
+*              W := W * V1**T
+*
+*               CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
+*     $                     ONE, V, LDV, WORK, LDWORK )
+*
+*              C1 := C1 - W**T
+*
+*               DO 30 J = 1, K
+*                  DO 20 I = 1, N
+*                     C( J, I ) = C( J, I ) - WORK( I, J )
+*   20             CONTINUE
+*   30          CONTINUE
+*
+*       Apply H to rows kk+1:m of the current block
+*
+        CALL DORG2R( M - KK, IB, IB, A(KK+1,KK+1), LDA, TAU(KK + 1),
+     $               WORK, IINFO )
          DO 50 I = KI+1, 1, -NB
             IB = MIN( NB, K-I+1 )
             IF( I+IB.LE.N ) THEN

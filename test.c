@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
     LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', m, n, A, lda, Q, ldq );
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, n, Q, ldq, tau, work, lwork );
     // Directly calling the fortran function dorgqr
-    //dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    //dorgqr_(&m, &n, &n, Q,&ldq, tau, work, &lwork, &info);
     // Directly calling my fortran function my_dorgqr
     my_dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
 
