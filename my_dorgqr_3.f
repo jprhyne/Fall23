@@ -125,7 +125,6 @@
 *
 *  =====================================================================
       SUBROUTINE MY_DORGQR( M, N, K, NB, A, LDA, TAU, WORK, LWORK, INFO)
-      IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -141,8 +140,8 @@
 *  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION   ZERO, ONE
-      PARAMETER          ( ZERO = 0.0D+0, ONE = 1.0D+0 )
+      DOUBLE PRECISION   ZERO
+      PARAMETER          ( ZERO = 0.0D+0 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            LQUERY
@@ -158,7 +157,6 @@
 *     .. External Functions ..
       INTEGER            ILAENV
       EXTERNAL           ILAENV
-
 *     ..
 *     .. Executable Statements ..
 *
@@ -166,10 +164,6 @@
 *
       INFO = 0
 *      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
-*
-*     Debugging purposes
-*
-      
       LWKOPT = MAX( 1, N )*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
@@ -229,125 +223,32 @@
 *        Use blocked code after the last block.
 *        The first kk columns are handled by the block method.
 *
-         KI = MAX((  K  / NB )*NB - NB, 1)
-         KK = KI + NB
+         KI = ( ( K-NX-1 ) / NB )*NB
+*         KK = MIN( K, KI+NB )
+         KK = KI
       ELSE
          KK = 0
       END IF
-      print *, KI
-      print *, kk
 *
-*     Use unblocked code for the last or only block.
-*
-      IF( KK.EQ.0 ) THEN
-        CALL DORG2R( M, N, K, A( 1, 1 ), LDA,
-     $                TAU( 1 ), WORK, IINFO )
-      END IF
-      IF( KK.GT.0 ) THEN
-*       First set our matrix to be of the form
-*       ——————
-*       |A1|0|
-*       ——————
-*       |A2|I|
-*       ——————
+*        Set A(1:kk,kk+1:n) to zero.
+*       TODO: Use LASET
         DO 20 J = KK + 1, N
           DO 10 I = 1, M
             A( I, J ) = ZERO
    10     CONTINUE
           A( J, J ) = ONE
    20   CONTINUE
-*       Form the triangular factor of the block reflector
-*       H = H(kk+1) H(kk+2) . . . H(k)
-        IB = K - KK
-        CALL DLARFT( 'Forward', 'Columnwise', M - KK, IB,
-     $               A(KK + 1, KK + 1), LDA, TAU(KK + 1), WORK,
-     $               LDWORK )
-
-*       Apply H to A(kk+1:m, k:n)
-*        M = M - KK
-*        N = N - K
-*        K = IB
-*        V = A(KK+1,KK+1)
-*        note: V(i,j) = A(KK + 1 + i, KK + 1 + j)
-*        LDV = LDA
-*        T = WORK
-*        note: T(i,j) = WORK(i + j * LDWORK)
-*        LDT = LDWORK
-*        C = A(KK,K)
-*        note: C(i,j) = A(KK + i, K + j)
-*        LDC = LDA
-*        WORK = WORK(IB + 1)
-*        note: WORK(i,j) = WORK(IB + 1 + i + j * ldwork)
-*        LDWORKT = LDWORK
-        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise', 
-     $               M - KK, N - K, IB, A( KK+1, KK+1), LDA, WORK,
-     $               LDWORK, A( KK, K), LDA, WORK(IB + 1), LDWORK)
 *
-*              Form  H * C  or  H**T * C  where  C = ( C1 )
-*                                                    ( C2 )
+*     Use unblocked code for the last or only block.
 *
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
+      IF( KK.LT.N )
+     $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
+     $                TAU( KK+1 ), WORK, IINFO )
 *
-*              W := C1**T
+      IF( KK.GT.0 ) THEN
 *
-*       copy rows kk + j from A into the jth 'column' of work
-*        DO 15 J = 1, IB
-*            CALL DCOPY( N - K, A( KK + J, K + 1 ), LDA, 
-*     $                  WORK(IB + 1 + 1 + J * LDWORK ), 1 )
-*   15   CONTINUE
+*        Use blocked code
 *
-*              W := W * V1
-*              Note: V1 is I, so W = W. No operations are needed here
-*
-*        CALL DTRMM( 'Right', 'Lower', 'No transpose', 'Unit', 
-*     $              N - KK, IB, ONE, A(KK + 1, KK + 1), LDA, 
-*     $              WORK(IB + 1), LDWORK )
-*        IF( M - KK.GT.IB ) THEN
-*
-*                 W := W + C2**T * V2
-*
-*          CALL DGEMM( 'Transpose', 'No transpose', N - K, IB, 
-*    $                 M - KK - IB,
-*    $                 ONE, A( KK + IB + 1, K + 1 ), LDA, 
-*    $                 A( KK + 1 + IB + 1, KK + 1 + 1 ), LDA,
-*    $                 ONE, WORK(IB + 1), LDWORK )
-*       END IF
-*
-*              W := W * T**T  or  W * T
-*
-*       CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', 
-*    $              N - K, IB, ONE, WORK, LDWORK, WORK(IB + 1), LDWORK )
-*
-*              C := C - V * W**T
-*
-*       IF( M - KK.GT.IB ) THEN
-*
-*                 C2 := C2 - V2 * W**T
-*
-*          CALL DGEMM( 'No transpose', 'Transpose', M - KK - IB, N - K,
-*    $                 IB, -ONE, A( KK + 1 + IB + 1, KK + 1 + 1 ), 
-*    $                 LDA, WORK(IB + 1), LDWORK, ONE,
-*    $                 A( KK + IB + 1, K + 1 ), LDA )
-*       END IF
-*
-*              W := W * V1**T
-*
-*       CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N - K, IB,
-*    $              ONE, A(KK + 1, KK + 1), LDA, WORK(IB + 1), LDWORK )
-*
-*              C1 := C1 - W**T
-*
-*       DO 35 J = 1, IB
-*          DO 25 I = 1, N - K
-*            A(KK + J, K + I) = A( KK + J, K + I ) - WORK(IB + 1 + I + J
-*    $                                                    * LDWORK)
-*  25      CONTINUE
-*  35   CONTINUE
-
-*       Apply H to rows kk+1:m of the current block        
-        CALL DORG2R( M - KK, IB, IB, A(KK+1,KK+1), LDA, TAU(KK + 1),
-     $               WORK, IINFO )
-
          DO 50 I = KI + 1, 1, -NB
             IB = MIN( NB, K-I+1 )
             IF( I+IB.LE.N ) THEN
