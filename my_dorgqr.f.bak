@@ -125,7 +125,6 @@
 *
 *  =====================================================================
       SUBROUTINE MY_DORGQR( M, N, K, NB, A, LDA, TAU, WORK, LWORK, INFO)
-      IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -141,8 +140,8 @@
 *  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION   ZERO, ONE
-      PARAMETER          ( ZERO = 0.0D+0, ONE = 1.0D+0 )
+      DOUBLE PRECISION   ZERO
+      PARAMETER          ( ZERO = 0.0D+0 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            LQUERY
@@ -224,102 +223,38 @@
 *        Use blocked code after the last block.
 *        The first kk columns are handled by the block method.
 *
-*        KI = (  (K-NX-1) / NB )*NB
-         KI = (  (K-1) / NB )*NB - NB
-*        KK = MIN(K, KI + NB)
+         KI = (  K / NB )*NB - NB
+*        KK = MIN( K, KI+NB )
          KK = KI + NB
       ELSE
          KK = 0
       END IF
 *
-*     Use unblocked code for the only block.
+*     Use unblocked code for the last or only block.
 *
-*     IF( KK.LT.N )
       IF( KK.EQ.0 )
      $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
      $                TAU( KK+1 ), WORK, IINFO )
 *
       IF( KK.GT.0 ) THEN
-         DO 20 J = K + 1, N
-            DO 10 I = 1, J-1
-               A( I, J ) = ZERO
-   10       CONTINUE
-            A(J,J) = ONE
-            DO 15 I = J+1, M
-               A( I, J ) = ZERO
-   15       CONTINUE
-   20    CONTINUE
-         I = KK + 1
-         IB = K - KK
 *
-*           Form the triangular factor of the block reflector
-*           H = H(i) H(i+1) . . . H(i+ib-1)
+*        Use blocked code
+*
+         I = KK + 1
+         IB = K - I + 1
+*
+*        Form the triangular factor of the block reflector
+*        H = H(i) H(i+1) . . . H(i+ib-1)
 *
          CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
      $                A( I, I ), LDA, TAU( I ), WORK, LDWORK )
 *
-*           Apply H to A(i:m,i+ib:n) from the left
+*        Apply H to A(i:m,i+ib:n) from the left
 *
          CALL DLARFB( 'Left', 'No transpose', 'Forward',
      $                'Columnwise', M-I+1, N-I-IB+1, IB,
      $                A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
      $                LDA, WORK( IB+1 ), LDWORK )
-*
-*              Form  H * C  or  H**T * C  where  C = ( C1 )
-*                                                    ( C2 )
-*
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
-*
-*              W := C1**T
-*
-*               DO 10 J = 1, K - KK
-*                  CALL DCOPY( N - K, A( KK + 1 + J, K + 1 ), LDA, 
-*     $                        WORK(1 + J * LDWORK + K - KK + 1), 1 )
-*   10          CONTINUE
-*
-*              W := W * V1
-*
-*               CALL DTRMM( 'Right', 'Lower', 'No transpose', 'Unit',
-*     $                     N-K,K-KK, ONE, A(KK + 1,KK + 1), LDA, 
-*     $                     WORK(K - KK + 1), LDWORK )
-*               IF( M.GT.K ) THEN
-*
-*                 W := W + C2**T * V2
-*
-*                  CALL DGEMM( 'Transpose', 'No transpose', N - K, K-KK,
-*     $                        M-K, ONE, C( K+1, 1 ), LDC, V( K+1, 1 ), LDV,
-*     $                        ONE, WORK, LDWORK )
-*               END IF
-*
-*              W := W * T**T  or  W * T
-*
-*               CALL DTRMM( 'Right', 'Upper', TRANST, 'Non-unit', N, K,
-*     $                     ONE, T, LDT, WORK, LDWORK )
-*
-*              C := C - V * W**T
-*
-*               IF( M.GT.K ) THEN
-*
-*                 C2 := C2 - V2 * W**T
-*
-*                  CALL DGEMM( 'No transpose', 'Transpose', M-K, N, K,
-*     $                        -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
-*     $                        C( K+1, 1 ), LDC )
-*               END IF
-*
-*              W := W * V1**T
-*
-*               CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
-*     $                     ONE, V, LDV, WORK, LDWORK )
-*
-*              C1 := C1 - W**T
-*
-*               DO 30 J = 1, K
-*                  DO 20 I = 1, N
-*                     C( J, I ) = C( J, I ) - WORK( I, J )
-*   20             CONTINUE
-*   30          CONTINUE
-*
 *
 *        Apply H to rows i:m of current block
 *
@@ -334,20 +269,22 @@
    35       CONTINUE
    45    CONTINUE
          DO 50 I = KI + 1, 1, -NB
-            IB = NB
+            IB = MIN( NB, K-I+1 )
+            IF( I+IB.LE.N ) THEN
 *
-*           Form the triangular factor of the block reflector
-*           H = H(i) H(i+1) . . . H(i+ib-1)
+*              Form the triangular factor of the block reflector
+*              H = H(i) H(i+1) . . . H(i+ib-1)
 *
-            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
-     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
+               CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
+     $                      A( I, I ), LDA, TAU( I ), WORK, LDWORK )
 *
-*           Apply H to A(i:m,i+ib:n) from the left
+*              Apply H to A(i:m,i+ib:n) from the left
 *
-            CALL DLARFB( 'Left', 'No transpose', 'Forward',
-     $                   'Columnwise', M-I+1, N-I-IB+1, IB,
-     $                   A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
-     $                   LDA, WORK( IB+1 ), LDWORK )
+               CALL DLARFB( 'Left', 'No transpose', 'Forward',
+     $                      'Columnwise', M-I+1, N-I-IB+1, IB,
+     $                      A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
+     $                      LDA, WORK( IB+1 ), LDWORK )
+            END IF
 *
 *           Apply H to rows i:m of current block
 *
