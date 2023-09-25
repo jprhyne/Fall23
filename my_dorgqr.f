@@ -146,7 +146,7 @@
 *     ..
 *     .. Local Scalars ..
       LOGICAL            LQUERY
-      INTEGER            I, IB, IINFO, IWS, J, KI, KK, L, LDWORK,
+      INTEGER            I,II, IB, IINFO, IWS, J,JJ, KI, KK, L, LDWORK,
      $                   LWKOPT, NB, NBMIN, NX
 *     ..
 *     .. External Subroutines ..
@@ -260,66 +260,50 @@
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-         CALL DLARFB( 'Left', 'No transpose', 'Forward',
-     $                'Columnwise', M-I+1, N-I-IB+1, IB,
-     $                A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
-     $                LDA, WORK( IB+1 ), LDWORK )
 *
-*              Form  H * C  or  H**T * C  where  C = ( C1 )
-*                                                    ( C2 )
+*        W := V2
 *
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
-*
-*              W := C1**T
-*
-*               DO 10 J = 1, K - KK
-*                  CALL DCOPY( N - K, A( KK + 1 + J, K + 1 ), LDA, 
-*     $                        WORK(1 + J * LDWORK + K - KK + 1), 1 )
-*   10          CONTINUE
-*
-*              W := W * V1
-*
-*               CALL DTRMM( 'Right', 'Lower', 'No transpose', 'Unit',
-*     $                     N-K,K-KK, ONE, A(KK + 1,KK + 1), LDA, 
-*     $                     WORK(K - KK + 1), LDWORK )
-*               IF( M.GT.K ) THEN
-*
-*                 W := W + C2**T * V2
-*
-*                  CALL DGEMM( 'Transpose', 'No transpose', N - K, K-KK,
-*     $                        M-K, ONE, C( K+1, 1 ), LDC, V( K+1, 1 ), LDV,
-*     $                        ONE, WORK, LDWORK )
-*               END IF
+         CALL DLACPY('All', N-K, IB, A(I+IB,I), LDA,WORK(IB+1),LDWORK)
 *
 *              W := W * T**T  or  W * T
 *
-*               CALL DTRMM( 'Right', 'Upper', TRANST, 'Non-unit', N, K,
-*     $                     ONE, T, LDT, WORK, LDWORK )
-*
-*              C := C - V * W**T
-*
-*               IF( M.GT.K ) THEN
+         CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', N-K,
+     $               IB,ONE, WORK, LDWORK, WORK(IB+1), LDWORK )
 *
 *                 C2 := C2 - V2 * W**T
 *
-*                  CALL DGEMM( 'No transpose', 'Transpose', M-K, N, K,
-*     $                        -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
-*     $                        C( K+1, 1 ), LDC )
-*               END IF
+         CALL DGEMM( 'No transpose', 'Transpose', M-IB-KK, N-K, IB,
+     $               -ONE, A( I+IB, I ), LDA, WORK(IB+1), LDWORK, ONE,
+     $               A( I+IB, I+IB ), LDA )
 *
 *              W := W * V1**T
 *
-*               CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
-*     $                     ONE, V, LDV, WORK, LDWORK )
+         CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N-K, IB,
+     $               ONE, A(I,I), LDA, WORK(IB+1), LDWORK )
 *
-*              C1 := C1 - W**T
+*              C1 := -W**T
 *
-*               DO 30 J = 1, K
-*                  DO 20 I = 1, N
-*                     C( J, I ) = C( J, I ) - WORK( I, J )
-*   20             CONTINUE
-*   30          CONTINUE
-*
+         DO 31 JJ = 1, IB
+           DO 21 II = 1, N-K
+             A( I+JJ-1, I+IB+II-1 ) = -WORK( 1+IB + (II-1) +
+     $          (JJ-1)*LDWORK )
+   21      CONTINUE
+   31    CONTINUE
+*              Side  :L
+*              Trans :N         -> transt = T
+*              Direct:F
+*              Storev:C
+*              m     :M-KK
+*              n     :N-K
+*              k     :IB
+*              v     :A(I,I)    -> v(j,k) = a(i+j, i+k)
+*              ldv   :lda
+*              t     :work      -> t(i,j) = work(i+j*ldt)
+*              ldt   :ldwork
+*              c     :A(I,I+IB) -> c(j,k) = a(i+j,i+ib+k)
+*              ldc   :lda
+*              work  :work(ib+1)-> work(i,j) = work(i+ib+1+j*ldwork)
+*              ldwork:ldwork
 *
 *        Apply H to rows i:m of current block
 *

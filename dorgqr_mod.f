@@ -124,8 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, NB, A, LDA, TAU, WORK, LWORK, INFO)
-      IMPLICIT NONE
+      SUBROUTINE DORGQR_MOD( M, N, K, NB,A,LDA, TAU, WORK, LWORK, INFO )
 *
 *  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -141,8 +140,8 @@
 *  =====================================================================
 *
 *     .. Parameters ..
-      DOUBLE PRECISION   ZERO, ONE
-      PARAMETER          ( ZERO = 0.0D+0, ONE = 1.0D+0 )
+      DOUBLE PRECISION   ZERO
+      PARAMETER          ( ZERO = 0.0D+0 )
 *     ..
 *     .. Local Scalars ..
       LOGICAL            LQUERY
@@ -158,18 +157,13 @@
 *     .. External Functions ..
       INTEGER            ILAENV
       EXTERNAL           ILAENV
-
 *     ..
 *     .. Executable Statements ..
 *
 *     Test the input arguments
 *
       INFO = 0
-*      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
-*
-*     Debugging purposes
-*
-      
+*     NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
       LWKOPT = MAX( 1, N )*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
@@ -206,7 +200,6 @@
 *        Determine when to cross over from blocked to unblocked code.
 *
          NX = MAX( 0, ILAENV( 3, 'DORGQR', ' ', M, N, K, -1 ) )
-         NX = 0
          IF( NX.LT.K ) THEN
 *
 *           Determine if workspace is large enough for blocked code.
@@ -229,65 +222,30 @@
 *        Use blocked code after the last block.
 *        The first kk columns are handled by the block method.
 *
-*        KI is the starting index of our first NB block
-         KI = MAX((  K  / NB )*NB - NB, 1)
-         KK = KI + NB
+         KI = ( ( K-NX-1 ) / NB )*NB
+         KK = MIN( K, KI+NB )
+*
+*        Set A(1:kk,kk+1:n) to zero.
+*
+         DO 20 J = KK + 1, N
+            DO 10 I = 1, KK
+               A( I, J ) = ZERO
+   10       CONTINUE
+   20    CONTINUE
       ELSE
          KK = 0
       END IF
-      print *, KI
-      print *, kk
 *
 *     Use unblocked code for the last or only block.
 *
-      IF( KK.LT.N ) THEN
-        CALL DORG2R( M - KK, N - KK, K-KK, A( KK + 1, KK + 1 ), LDA,
-     $                TAU( KK + 1 ), WORK, IINFO )
-      END IF
-      IF( KK.GT.0 ) THEN
-*       First set our matrix to be of the form
-*       ——————
-*       |A1|0|
-*       ——————
-*       |A2|I|
-*       ——————
-*        DO 20 J = KK + 1, N
-*          DO 10 I = 1, M
-*            A( I, J ) = ZERO
-*   10     CONTINUE
-*          A( J, J ) = ONE
-*   20   CONTINUE
-**       Form the triangular factor of the block reflector
-**       H = H(kk+1) H(kk+2) . . . H(k)
-*        IB = K - KK
-*        CALL DLARFT( 'Forward', 'Columnwise', M - KK, IB,
-*     $               A(KK + 1, KK + 1), LDA, TAU(KK + 1), WORK,
-*     $               LDWORK )
+      IF( KK.LT.N )
+     $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
+     $                TAU( KK+1 ), WORK, IINFO )
 *
-**       Apply H to A(kk+1:m, k:n)
-**        M = M - KK
-**        N = N - K
-**        K = IB
-**        V = A(KK+1,KK+1)
-**        note: V(i,j) = A(KK + 1 + i, KK + 1 + j)
-**        LDV = LDA
-**        T = WORK
-**        note: T(i,j) = WORK(i + j * LDWORK)
-**        LDT = LDWORK
-**        C = A(KK,K)
-**        note: C(i,j) = A(KK + i, K + j)
-**        LDC = LDA
-**        WORK = WORK(IB + 1)
-**        note: WORK(i,j) = WORK(IB + 1 + i + j * ldwork)
-**        LDWORKT = LDWORK
-*        CALL DLARFB( 'Left', 'No transpose', 'Forward', 'Columnwise', 
-*     $               M - KK, N - KK - IB, IB, A( KK+1, KK+1), LDA,
-*     $               WORK, LDWORK, A( KK, KK + IB), LDA, WORK(IB + 1), 
-*     $               LDWORK)
-**       Apply H to rows kk+1:m of the current block        
-*        CALL DORG2R( M - KK, IB, IB, A(KK+1,KK+1), LDA, TAU(KK + 1),
-*     $               WORK, IINFO )
-
+      IF( KK.GT.0 ) THEN
+*
+*        Use blocked code
+*
          DO 50 I = KI + 1, 1, -NB
             IB = MIN( NB, K-I+1 )
             IF( I+IB.LE.N ) THEN
