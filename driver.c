@@ -10,9 +10,9 @@ int main(int argc, char *argv[])
     // Now iterate over several options of m,n,k, and nb
     for (int m = 50; m <= 850; m+=100) {
         for (int n = 50; n <= m; n+=100) {
-            for (int k = 10; k <= n; k+=200) {
+            for (int k = 10; k <= n; k+=100) {
                 for (int nb = 3; nb <= 32 && nb < k; nb+=10) {
-                    sprintf(func, "./test.exe -m %d -n %d -k %d -nb %d", m,n,k,nb);
+                    sprintf(func, "./test.exe -m %d -n %d -k %d -nb %d -e", m,n,k,nb);
                     system(func);
                 }
             }

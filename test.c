@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include<stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
@@ -32,10 +33,12 @@ int main(int argc, char **argv) {
     // the blocked code
     m = 30;
     n = 20;
-    k = 20;
+    k = n/2 + 1;
     nb = 3; // Choose a default nb value that is NOT a factor of m nor n
     lda = -1;
     ldq = -1;
+    // Flag that helps facilitate testing with the driver.c file
+    bool errorsOnly = false;
 
     for(i = 1; i < argc; ++i){
         if( strcmp( *(argv + i), "-ldq") == 0) {
@@ -62,20 +65,24 @@ int main(int argc, char **argv) {
             k  = atoi( *(argv + i + 1) );
             i++;
         }
+        if( strcmp( *(argv + i), "-e") == 0) {
+            errorsOnly  = true;
+        }
     }
 
     if( lda < 0 ) lda = m;
     if( ldq < 0 ) ldq = m;
 
-    printf("dgeqrf dgorgqr LAPACK | ");
-    printf("m = %4d, ",    m);
-    printf("n = %4d, ",    n);
-    printf("k = %4d, ",    k);
-    printf("nb = %4d, ",    nb);
-    printf("lda = %4d, ",lda);
-    printf("ldq = %4d, ",ldq);
-    printf("           ");
-    printf("  ");
+    if (!errorsOnly) {
+        printf("dgeqrf dgorgqr LAPACK | ");
+        printf("m = %4d, ",    m);
+        printf("n = %4d, ",    n);
+        printf("k = %4d, ",    k);
+        printf("nb = %4d, ",    nb);
+        printf("lda = %4d, ",lda);
+        printf("ldq = %4d, ",ldq);
+        printf("             ");
+    }
 
     A  = (double *) calloc(lda * k,sizeof(double));
     As = (double *) calloc(lda * k, sizeof(double));
@@ -136,9 +143,11 @@ int main(int argc, char **argv) {
     norm_repres_1 = norm_repres_1 / normA;
     free( work );
 
-    printf("| time = %f   GFlop/sec = %f", elapsed_refL, perform_refL);
-
-    printf("| repres  = %5.1e    ortho = %5.1e ", norm_repres_1, norm_orth_1);
+    if (!errorsOnly) {
+        printf("| time = %f   GFlop/sec = %f", elapsed_refL, perform_refL);
+        printf("| repres  = %5.1e    ortho = %5.1e ", norm_repres_1, norm_orth_1);
+    } else
+        printf("%10.10e %10.10e", norm_repres_1, norm_orth_1);
 
     printf("\n");
 

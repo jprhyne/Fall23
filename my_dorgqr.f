@@ -226,8 +226,10 @@
 *
 *        KI = (  (K-NX-1) / NB )*NB
          KI = (  (K-1) / NB )*NB - NB
+         KI = K - 2 * NB
 *        KK = MIN(K, KI + NB)
          KK = KI + NB
+*        KK = K - NB
       ELSE
          KK = 0
       END IF
@@ -346,6 +348,40 @@
    30          CONTINUE
    40       CONTINUE
    50    CONTINUE
+         IB = I + NB - 1
+         I = 1
+*        This checks for if K was a perfect multiple of NB
+*        so that we only have a special case for the last block when
+*        necessary
+         IF(I.NE.IB + 1) THEN
+*
+*           Form the triangular factor of the block reflector
+*           H = H(i) H(i+1) . . . H(i+ib-1)
+*
+            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
+     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
+*
+*           Apply H to A(i:m,i+ib:n) from the left
+*
+            CALL DLARFB( 'Left', 'No transpose', 'Forward',
+     $                   'Columnwise', M-I+1, N-I-IB+1, IB,
+     $                   A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
+     $                   LDA, WORK( IB+1 ), LDWORK )
+*
+*           Apply H to rows i:m of current block
+*
+            CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ), WORK,
+     $                   IINFO )
+*
+*           Set rows 1:i-1 of current block to zero
+*
+            DO 42 J = I, I + IB - 1
+               DO 32 L = 1, I - 1
+                  A( L, J ) = ZERO
+   32          CONTINUE
+   42       CONTINUE
+
+         END IF
       END IF
 *
       WORK( 1 ) = IWS
