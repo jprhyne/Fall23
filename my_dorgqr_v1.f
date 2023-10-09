@@ -242,7 +242,6 @@
      $                TAU( KK+1 ), WORK, IINFO )
 *
       IF( KK.GT.0 ) THEN
-*        Look at removing this
          DO 20 J = K + 1, N
             DO 10 I = 1, J-1
                A( I, J ) = ZERO
@@ -263,60 +262,48 @@
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-*            CALL MY_DLARFB( M-KK, N-K, IB,
-*     $                   A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
-*     $                   LDA, WORK( IB+1 ), LDWORK )
 *
-**        W := V2
-*        C1 := V2**T
+*        W := V2
 *
 *        Try to use C1 (A(I,I+IB)) instead of W (WORK(IB+1))
-*         CALL DLACPY('All', N-K, IB, A(I+IB,I), LDA,WORK(IB+1),LDWORK)
-         DO 36 JJ = 1, IB
-           DO 26 II = 1, N-K
-              A( I+JJ-1, I+IB+II-1 ) = A( I+IB+II-1, I+JJ-1 )
-   26      CONTINUE
-   36    CONTINUE
+         CALL DLACPY('All', N-K, IB, A(I+IB,I), LDA,WORK(IB+1),LDWORK)
+*         DO 36 JJ = 1, IB
+*           DO 26 II = 1, N-K
+*              A( I+JJ-1, I+IB+II-1 ) = A( I+IB+II-1, I+JJ-1 )
+*   26      CONTINUE
+*   36    CONTINUE
 *
-**              W := W * T**T  or  W * T
-*              C1 := T * C1
+*              W := W * T**T  or  W * T
 *
-*  old
-*         CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', N-K,
-*     $               IB,ONE, WORK, LDWORK, WORK(IB+1), LDWORK )
-*  new
-         CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit', IB,
-     $               N-K,ONE, WORK, LDWORK, A(I,I+IB),LDA )
+         CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', N-K,
+     $               IB,ONE, WORK, LDWORK, WORK(IB+1), LDWORK )
+*        CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit', N-K,
+*    $               IB,ONE, WORK, LDWORK, A(I,I+IB),LDA )
 *
-**                 C2 := C2 - V2 * W**T
-*                 C2 := C2 - V2 * C1
+*                 C2 := C2 - V2 * W**T
 *
-*         CALL DGEMM( 'No transpose', 'Transpose', M-IB-KK, N-K, IB,
-*     $               -ONE, A( I+IB, I ), LDA, WORK(IB+1), LDWORK, ONE,
-*     $               A( I+IB, I+IB ), LDA )
-         CALL DGEMM( 'No transpose', 'No transpose', M-IB-KK, N-K, IB,
-     $               -ONE, A( I+IB, I ), LDA, A(I,I+IB),LDA, ZERO,
+         CALL DGEMM( 'No transpose', 'Transpose', M-IB-KK, N-K, IB,
+     $               -ONE, A( I+IB, I ), LDA, WORK(IB+1), LDWORK, ONE,
      $               A( I+IB, I+IB ), LDA )
-         do 14 jj = 1, n-k
-            A(I+IB+JJ-1,I+IB+JJ-1) = 1 + A(I+IB+JJ-1,I+IB+JJ-1)
-   14    continue
+*        CALL DGEMM( 'No transpose', 'No transpose', M-IB-KK, N-K, IB,
+*    $               -ONE, A( I+IB, I ), LDA, A(I,I+IB),LDA, ONE,
+*    $               A( I+IB, I+IB ), LDA )
 *
-**              W := W * V1**T
-*              C1 := -V1 * C1 
+*              W := W * V1**T
 *
-*         CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N-K, IB,
-*     $               ONE, A(I,I), LDA, WORK(IB+1), LDWORK )
-         CALL DTRMM( 'Left', 'Lower', 'No transpose', 'Unit', IB, N-K,
-     $               -ONE, A(I,I), LDA, A(I,I+IB),LDA )
+         CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N-K, IB,
+     $               ONE, A(I,I), LDA, WORK(IB+1), LDWORK )
+*        CALL DTRMM( 'Left', 'Lower', 'No transpose', 'Unit', N-K, IB,
+*    $               -ONE, A(I,I), LDA, A(I,I+IB),LDA )
 *
-**              C1 := -W**T
+*              C1 := -W**T
 *
-*         DO 31 JJ = 1, IB
-*           DO 21 II = 1, N-K
-*             A( I+JJ-1, I+IB+II-1 ) = -WORK( 1+IB + (II-1) +
-*     $          (JJ-1)*LDWORK )
-*   21      CONTINUE
-*   31    CONTINUE
+         DO 31 JJ = 1, IB
+           DO 21 II = 1, N-K
+             A( I+JJ-1, I+IB+II-1 ) = -WORK( 1+IB + (II-1) +
+     $          (JJ-1)*LDWORK )
+   21      CONTINUE
+   31    CONTINUE
 *              Side  :L
 *              Trans :N         -> transt = T
 *              Direct:F

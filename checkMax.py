@@ -12,5 +12,5 @@ for line in f:
     maxOrth = max(maxOrth,float(a[1]))
 
 print("Maximum representation error: " + str(maxRepr))
-print("Maximum orthoginal error: " + str(maxOrth))
+print("Maximum orthogonal error: " + str(maxOrth))
 f.close()

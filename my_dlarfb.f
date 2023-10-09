@@ -216,7 +216,7 @@
 *------------------------------------------------------------------
 * Added below
 *------------------------------------------------------------------
-*                 CALL DLACPY('All', N, K, V(K+1,1), LDV,WORK,LDWORK)
+                 CALL DLACPY('All', N, K, V(K+1,1), LDV,WORK,LDWORK)
 *------------------------------------------------------------------
 * Added above
 *------------------------------------------------------------------
@@ -230,8 +230,8 @@
 *
 *              W := W * T**T  or  W * T
 *
-*               CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', N,
-*     $                     K,ONE, T, LDT, WORK, LDWORK )
+               CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', N,
+     $                     K,ONE, T, LDT, WORK, LDWORK )
 *
 *              C := C - V * W**T
 *
@@ -245,15 +245,15 @@
 *
 *                 C2 := C2 - V2 * W**T
 *
-*                CALL DGEMM( 'No transpose', 'Transpose', M-K, N, K,
-*     $                      -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
-*     $                      C( K+1, 1 ), LDC )
+                CALL DGEMM( 'No transpose', 'Transpose', M-K, N, K,
+     $                      -ONE, V( K+1, 1 ), LDV, WORK, LDWORK, ONE,
+     $                      C( K+1, 1 ), LDC )
 *               END IF
 *
 *              W := W * V1**T
 *
-*               CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
-*     $                     ONE, V, LDV, WORK, LDWORK )
+               CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N, K,
+     $                     ONE, V, LDV, WORK, LDWORK )
 *
 *              C1 := C1 - W**T
 *
@@ -263,11 +263,11 @@
 *------------------------------------------------------------------
 * Modified below
 *------------------------------------------------------------------
-*               DO 30 J = 1, K
-*                  DO 20 I = 1, N
-*                     C( J, I ) = -WORK( I, J )
-*   20             CONTINUE
-*   30          CONTINUE
+               DO 30 J = 1, K
+                  DO 20 I = 1, N
+                     C( J, I ) = -WORK( I, J )
+   20             CONTINUE
+   30          CONTINUE
 *------------------------------------------------------------------
 * Modified above
 *------------------------------------------------------------------

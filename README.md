@@ -34,7 +34,10 @@ This repository will hold my modifications on the dorgqr.f file from release 3.1
     * TODO: Remove this file or properly call it inside my_dorgqr.f
 * my_dorgqr.f
     * Modified dorgqr
+* my_dorgqr_v1.f
+    * Modified dorgqr that only takes into account of the initial Identity block
 * README.md
     * This file
 * test.c
     * Test file that tests the representation and orthogonality of the output from my_dorgqr.f
+
