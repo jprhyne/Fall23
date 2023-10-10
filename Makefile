@@ -1,6 +1,9 @@
 include make.inc
 
-default: test.exe driver
+default: test.exe driver test_optBlas.exe
+
+test_optBlas.exe: 	my_dorgqr.o test.o my_dlarfb.o test.c
+	gfortran  $(CFLAGS) my_dorgqr.o test.o my_dlarfb.o $(OPTBLAS) -o $@
 
 my_dlarfb.o: my_dlarfb.f
 	$(FC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
@@ -18,4 +21,4 @@ driver: driver.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean:
-	rm *o driver test.exe
+	rm *o driver test.exe test_optBlas.exe

@@ -16,3 +16,13 @@ CC=gcc
 FC=gfortran
 
 CFLAGS=-g
+FFLAGS=-fimplicit-none
+
+# This is the compilation flags needed to compile with optimized blas
+# For intel machines, this whatever is needed for MKL.
+#	  On Linux, this is done by instally mkl (typically through the package manager) and then running 
+#	  ```mkl_link_tool gfortran $(CFLAGS) my_dorgqr.o test.o my_dlarfb.o```
+#	  and then taking the ending bit after 'my_dlarfb.o'
+# For AMD machines, this is whatever is needed for AOCL
+#   I have not tried this on AMD machines, so I am unsure how to do this.
+OPTBLAS=-m64  -I"/opt/intel/oneapi/mkl/2023.2.0/include"  -L$(MKLROOT)/lib/intel64 -Wl,--no-as-needed -lmkl_gf_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
