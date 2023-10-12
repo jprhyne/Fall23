@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
     // Run make to compile the test function if needed
-    system("make");
+    //system("make");
     char command[2048];
     // Now iterate over several options of m,n,k, and nb
     for (int m = 50; m <= 850; m+=100) {

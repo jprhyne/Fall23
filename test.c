@@ -114,9 +114,9 @@ int main(int argc, char **argv) {
 
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, Q, ldq, tau, work, lwork );
     // Directly calling the fortran function dorgqr
-    dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    //dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
     // Directly calling my fortran function my_dorgqr
-    //my_dorgqr_(&m, &n, &k, &nb, Q, &ldq, tau, work, &lwork, &info);
+    my_dorgqr_(&m, &n, &k, &nb, Q, &ldq, tau, work, &lwork, &info);
 
     gettimeofday(&tp, NULL);
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);

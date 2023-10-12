@@ -243,6 +243,8 @@
 *
       IF( KK.GT.0 ) THEN
 *        Look at removing this
+*        We should be able to do so once we remove modify dlarfb inside
+*        our for loop.
          DO 20 J = K + 1, N
             DO 10 I = 1, J-1
                A( I, J ) = ZERO
@@ -270,7 +272,9 @@
 **        W := V2
 *        C1 := V2**T
 *
-*        Try to use C1 (A(I,I+IB)) instead of W (WORK(IB+1))
+*         Since C1 starts as 0, we are using this instead of WORK(IB+1).
+*         This helps us reduce the memory footprint by lowering WORK to
+*         be of only size IB
 *         CALL DLACPY('All', N-K, IB, A(I+IB,I), LDA,WORK(IB+1),LDWORK)
          DO 36 JJ = 1, IB
            DO 26 II = 1, N-K
@@ -317,21 +321,6 @@
 *     $          (JJ-1)*LDWORK )
 *   21      CONTINUE
 *   31    CONTINUE
-*              Side  :L
-*              Trans :N         -> transt = T
-*              Direct:F
-*              Storev:C
-*              m     :M-KK
-*              n     :N-K
-*              k     :IB
-*              v     :A(I,I)    -> v(j,k) = a(i+j, i+k)
-*              ldv   :lda
-*              t     :work      -> t(i,j) = work(i+j*ldt)
-*              ldt   :ldwork
-*              c     :A(I,I+IB) -> c(j,k) = a(i+j,i+ib+k)
-*              ldc   :lda
-*              work  :work(ib+1)-> work(i,j) = work(i+ib+1+j*ldwork)
-*              ldwork:ldwork
 *
 *        Apply H to rows i:m of current block
 *
@@ -339,6 +328,7 @@
      $                IINFO )
 *
 *        Set rows 1:i-1 of current block to zero
+*        NOTE: This is going to be C1 in the following loop
 *
          DO 45 J = I, I + IB - 1
             DO 35 L = 1, I - 1
@@ -355,11 +345,55 @@
      $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
 *
 *           Apply H to A(i:m,i+ib:n) from the left
-* Because of labels 30 and 40, C1 = 0, so use this
-            CALL DLARFB( 'Left', 'No transpose', 'Forward',
-     $                   'Columnwise', M-I+1, N-I-IB+1, IB,
-     $                   A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
-     $                   LDA, WORK( IB+1 ), LDWORK )
+*
+*           M' = M - I + 1
+*           N' = N - I - IB + 1
+*           K' = IB
+*           V  = A(I,I)
+*           LDV= LDA
+*           T  = WORK
+*           LDT= LDWORK
+*           C  = A(I, I+IB)
+*           LDC= LDA
+*
+*              Form  H * C  or  H**T * C  where  C = ( C1=0 )
+*                                                    ( C2=* )
+*
+*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
+*
+**              W  := C2**T * V2
+*              C1 := V2**T * C2
+*
+               CALL DGEMM( 'Transpose', 'No transpose', IB, 
+     $                        N-I-IB+1, M-I+1-IB,
+     $                        ONE, A( I+IB, I ), LDA, 
+     $                        A( I + IB, I + IB ), LDA,
+     $                        ZERO, A(I,I+IB), LDA )
+*
+**              W  := W * T**T  or  W * T
+*              C1 := T * C1
+*
+               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
+     $                     IB, N-I-IB+1, ONE, WORK, LDWORK, 
+     $                     A(I,I+IB), LDA )
+*
+*              C := C - V * W**T
+*
+*
+**                 C2 := C2 - V2 * W**T
+*                 C2 := C2 - V2 * C1
+*
+                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
+     $                        N-I-IB+1, IB,
+     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
+     $                        ONE, A( I+IB, I+IB ), LDA )
+*
+**              W  := W * V1**T
+*              C1 := -V1 * C1
+*
+               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
+     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
+
 *
 *           Apply H to rows i:m of current block
 *
@@ -374,12 +408,12 @@
    30          CONTINUE
    40       CONTINUE
    50    CONTINUE
-         IB = I + NB - 1
-         I = 1
 *        This checks for if K was a perfect multiple of NB
 *        so that we only have a special case for the last block when
 *        necessary
-         IF(IB.GT.0) THEN
+         IF(I.LT.1) THEN
+            IB = I + NB - 1
+            I = 1
 *
 *           Form the triangular factor of the block reflector
 *           H = H(i) H(i+1) . . . H(i+ib-1)
