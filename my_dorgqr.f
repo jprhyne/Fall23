@@ -165,7 +165,10 @@
 *
       INFO = 0
 *      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
-      LWKOPT = MAX( 1, N )*NB
+*     Reworking the LWORK computation since we only need WORK to be of
+*     size NB**2 to hold T. If N is 0, then we don't need any work array
+*     due to us doing a quick return
+      LWKOPT = MIN( 1, N )*NB*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
       IF( M.LT.0 ) THEN
@@ -255,7 +258,7 @@
    15       CONTINUE
    20    CONTINUE
          I = KK + 1
-         IB = K - KK
+         IB = NB
 *
 *           Form the triangular factor of the block reflector
 *           H = H(i) H(i+1) . . . H(i+ib-1)
@@ -265,9 +268,6 @@
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-*            CALL MY_DLARFB( M-KK, N-K, IB,
-*     $                   A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
-*     $                   LDA, WORK( IB+1 ), LDWORK )
 *
 **        W := V2
 *        C1 := V2**T
@@ -301,7 +301,7 @@
          CALL DGEMM( 'No transpose', 'No transpose', M-IB-KK, N-K, IB,
      $               -ONE, A( I+IB, I ), LDA, A(I,I+IB),LDA, ZERO,
      $               A( I+IB, I+IB ), LDA )
-         do 14 jj = 1, n-k
+         do 14 JJ = 1, N-K
             A(I+IB+JJ-1,I+IB+JJ-1) = 1 + A(I+IB+JJ-1,I+IB+JJ-1)
    14    continue
 *
@@ -423,10 +423,45 @@
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-            CALL DLARFB( 'Left', 'No transpose', 'Forward',
-     $                   'Columnwise', M-I+1, N-I-IB+1, IB,
-     $                   A( I, I ), LDA, WORK, LDWORK, A( I, I+IB ),
-     $                   LDA, WORK( IB+1 ), LDWORK )
+*
+*              Form  H * C  or  H**T * C  where  C = ( C1=0 )
+*                                                    ( C2=* )
+*
+*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
+*
+**              W  := C2**T * V2
+*              C1 := V2**T * C2
+*
+               CALL DGEMM( 'Transpose', 'No transpose', IB, 
+     $                        N-I-IB+1, M-I+1-IB,
+     $                        ONE, A( I+IB, I ), LDA, 
+     $                        A( I + IB, I + IB ), LDA,
+     $                        ZERO, A(I,I+IB), LDA )
+*
+**              W  := W * T**T  or  W * T
+*              C1 := T * C1
+*
+               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
+     $                     IB, N-I-IB+1, ONE, WORK, LDWORK, 
+     $                     A(I,I+IB), LDA )
+*
+*              C := C - V * W**T
+*
+*
+**                 C2 := C2 - V2 * W**T
+*                 C2 := C2 - V2 * C1
+*
+                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
+     $                        N-I-IB+1, IB,
+     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
+     $                        ONE, A( I+IB, I+IB ), LDA )
+*
+**              W  := W * V1**T
+*              C1 := -V1 * C1
+*
+               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
+     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
+
 *
 *           Apply H to rows i:m of current block
 *

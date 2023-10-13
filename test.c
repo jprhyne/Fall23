@@ -124,7 +124,6 @@ int main(int argc, char **argv) {
     free( work );
     // fix later. This was from timing everything
     perform_refL = (4.0e+00*(double) m*(double)n*(double)k -2.0e+00*(double)m*(double)k*(double)k - 2.0e+00*(double)n*(double)k*(double)k + 4.0e+00/3.0e+00 *(double)k*(double)k*(double)k)/elapsed_refL /1.0e+9;
-    //perform_refL = ( 4.0e+00 * ((double) m) * ((double) n) * ((double) k) - 2.0e+00 / 3.0e+00 * ((double) n) * ((double) n) * ((double) n) )  / elapsed_refL / 1.0e+9 ;
     
     double norm_orth_1, norm_repres_1;
 
@@ -151,7 +150,6 @@ int main(int argc, char **argv) {
         printf("%10.10e %10.10e", norm_repres_1, norm_orth_1);
 
     printf("\n");
-
 
     free( Q );
     free( A );
