@@ -246,18 +246,6 @@
      $                TAU( KK+1 ), WORK, IINFO )
 *
       IF( KK.GT.0 ) THEN
-*        Look at removing this
-*        We should be able to do so once we remove modify dlarfb inside
-*        our for loop.
-         DO 20 J = K + 1, N
-            DO 10 I = 1, J-1
-               A( I, J ) = ZERO
-   10       CONTINUE
-            A(J,J) = ONE
-            DO 15 I = J+1, M
-               A( I, J ) = ZERO
-   15       CONTINUE
-   20    CONTINUE
          I = KK + 1
          IB = NB
 *
