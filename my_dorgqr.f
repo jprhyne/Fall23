@@ -167,7 +167,9 @@
 *      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
 *     Reworking the LWORK computation since we only need WORK to be of
 *     size NB**2 to hold T. If N is 0, then we don't need any work array
-*     due to us doing a quick return
+*     due to us doing a quick return. If it's less than 0, then we are
+*     erroring out, so we won't need a work array. LWKOPT would just be
+*     negative in this case.
       LWKOPT = MIN( 1, N )*NB*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
@@ -203,7 +205,7 @@
 *
 *        Determine when to cross over from blocked to unblocked code.
 *
-         NX = MAX( 0, ILAENV( 3, 'DORGQR', ' ', M, N, K, -1 ) )
+*         NX = MAX( 0, ILAENV( 3, 'DORGQR', ' ', M, N, K, -1 ) )
          NX = 0
          IF( NX.LT.K ) THEN
 *
@@ -231,8 +233,7 @@
 *        KI = (  (K-1) / NB )*NB - NB
          KI = K - 2 * NB
 *        KK = MIN(K, KI + NB)
-         KK = KI + NB
-*        KK = K - NB
+         KK = K - NB
       ELSE
          KK = 0
       END IF
@@ -318,11 +319,11 @@
 *        Set rows 1:i-1 of current block to zero
 *        NOTE: This is going to be C1 in the following loop
 *
-         DO 45 J = I, I + IB - 1
-            DO 35 L = 1, I - 1
-               A( L, J ) = ZERO
-   35       CONTINUE
-   45    CONTINUE
+*         DO 45 J = I, I + IB - 1
+*            DO 35 L = 1, I - 1
+*               A( L, J ) = ZERO
+*   35       CONTINUE
+*   45    CONTINUE
          DO 50 I = KI + 1, 1, -NB
             IB = NB
 *
@@ -334,15 +335,6 @@
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-*           M' = M - I + 1
-*           N' = N - I - IB + 1
-*           K' = IB
-*           V  = A(I,I)
-*           LDV= LDA
-*           T  = WORK
-*           LDT= LDWORK
-*           C  = A(I, I+IB)
-*           LDC= LDA
 *
 *              Form  H * C  or  H**T * C  where  C = ( C1=0 )
 *                                                    ( C2=* )
@@ -352,18 +344,36 @@
 **              W  := C2**T * V2
 *              C1 := V2**T * C2
 *
-               CALL DGEMM( 'Transpose', 'No transpose', IB, 
-     $                        N-I-IB+1, M-I+1-IB,
-     $                        ONE, A( I+IB, I ), LDA, 
-     $                        A( I + IB, I + IB ), LDA,
-     $                        ZERO, A(I,I+IB), LDA )
+*               CALL DGEMM( 'Transpose', 'No transpose', IB, 
+*     $                        N-I-IB+1, M-I+1-IB,
+*     $                        ONE, A( I+IB, I ), LDA, 
+*     $                        A( I + IB, I + IB ), LDA,
+*     $                        ZERO, A(I,I+IB), LDA )
+*           Go up to column K
+*           C11 = V2**T * C21
+            CALL DGEMM( 'Transpose', 'No transpose', IB, K-I-IB+1,
+     $                  M-I+1-IB, ONE, A(I+IB,I), LDA, A(I+IB,I+IB),
+     $                  LDA, ZERO, A(I,I+IB), LDA)
+*           Go from column K to column N
+*           C12 = V2**T * C22
+            CALL DGEMM( 'Transpose', 'No transpose', IB, N - K,
+     $                  M-I+1-IB, ONE, A(I+IB,I), LDA, A(I+IB,K+1),
+     $                  LDA, ZERO, A(I,K+1), LDA)
+
 *
 **              W  := W * T**T  or  W * T
 *              C1 := T * C1
 *
-               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
-     $                     IB, N-I-IB+1, ONE, WORK, LDWORK, 
-     $                     A(I,I+IB), LDA )
+*               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
+*     $                     IB, N-I-IB+1, ONE, WORK, LDWORK, 
+*     $                     A(I,I+IB), LDA )
+*              C11 := T * C11            
+            CALL DTRMM('Left', 'Upper', 'No transpose', 'Non-unit',
+     $                  IB, K-I-IB+1, ONE, WORK, LDWORK, A(I,I+IB), LDA)
+
+*              C12 := T * C12
+            CALL DTRMM('Left', 'Upper', 'No transpose', 'Non-unit',
+     $                  IB, N- K, ONE, WORK, LDWORK, A(I,K + 1), LDA)
 *
 *              C := C - V * W**T
 *
@@ -371,16 +381,31 @@
 **                 C2 := C2 - V2 * W**T
 *                 C2 := C2 - V2 * C1
 *
-                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
-     $                        N-I-IB+1, IB,
-     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
-     $                        ONE, A( I+IB, I+IB ), LDA )
+*                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
+*     $                        N-I-IB+1, IB,
+*     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
+*     $                        ONE, A( I+IB, I+IB ), LDA )
+*             C21 := C21 - V2 * C11
+            CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
+     $                  K-I-IB+1, IB, -ONE, A(I+IB,I), LDA, A(I,I+IB),
+     $                  LDA, ONE, A(I+IB, I+IB), LDA)
+
+*             C22 := C22 - V2 * C12
+            CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
+     $                  N-K, IB, -ONE, A(I+IB,I), LDA, A(I,K+1),
+     $                  LDA,ONE, A(I+IB, K+1), LDA)
 *
 **              W  := W * V1**T
 *              C1 := -V1 * C1
 *
-               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
-     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
+*               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
+*     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
+*              C11 := -V1 * C11
+            CALL DTRMM( 'Left', 'Lower', 'No-transpose', 'Unit', IB, 
+     $                  K-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA)
+*              C12 := -V1 * C12
+            CALL DTRMM( 'Left', 'Lower', 'No-transpose', 'Unit', IB, 
+     $                  N-K, -ONE, A(I,I), LDA, A(I,K+1), LDA)
 
 *
 *           Apply H to rows i:m of current block
@@ -389,12 +414,14 @@
      $                   IINFO )
 *
 *           Set rows 1:i-1 of current block to zero
+*           Not needed anymore due to us properly taking advantage of
+*           C1 = 0 through above
 *
-            DO 40 J = I, I + IB - 1
-               DO 30 L = 1, I - 1
-                  A( L, J ) = ZERO
-   30          CONTINUE
-   40       CONTINUE
+*            DO 40 J = I, I + IB - 1
+*               DO 30 L = 1, I - 1
+*                  A( L, J ) = ZERO
+*   30          CONTINUE
+*   40       CONTINUE
    50    CONTINUE
 *        This checks for if K was a perfect multiple of NB
 *        so that we only have a special case for the last block when

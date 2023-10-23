@@ -39,6 +39,8 @@ int main(int argc, char **argv) {
     ldq = -1;
     // Flag that helps facilitate testing with the driver.c file
     bool errorsOnly = false;
+    // Flag that helps facilitate timeing with the time.sh file
+    bool timesOnly = false;
 
     for(i = 1; i < argc; ++i){
         if( strcmp( *(argv + i), "-ldq") == 0) {
@@ -68,12 +70,15 @@ int main(int argc, char **argv) {
         if( strcmp( *(argv + i), "-e") == 0) {
             errorsOnly  = true;
         }
+        if( strcmp( *(argv + i), "-t") == 0) {
+            timesOnly  = true;
+        }
     }
 
     if( lda < 0 ) lda = m;
     if( ldq < 0 ) ldq = m;
 
-    if (!errorsOnly) {
+    if (!errorsOnly && !timesOnly) {
         printf("dgeqrf dgorgqr LAPACK | ");
         printf("m = %4d, ",    m);
         printf("n = %4d, ",    n);
@@ -143,11 +148,14 @@ int main(int argc, char **argv) {
     norm_repres_1 = norm_repres_1 / normA;
     free( work );
 
-    if (!errorsOnly) {
+    if (!errorsOnly && !timesOnly) {
         printf("| time = %f   GFlop/sec = %f", elapsed_refL, perform_refL);
         printf("| repres  = %5.1e    ortho = %5.1e ", norm_repres_1, norm_orth_1);
-    } else
+    } else if (errorsOnly && !timesOnly) {
         printf("%10.10e %10.10e", norm_repres_1, norm_orth_1);
+    } else {
+        printf("%f", elapsed_refL);
+    }
 
     printf("\n");
 
