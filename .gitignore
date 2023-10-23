@@ -57,3 +57,6 @@ make.inc
 .*.swp
 # Exclude the results file
 results.txt
+my.txt
+mkl.txt
+ref.txt
