@@ -60,3 +60,10 @@ results.txt
 my.txt
 mkl.txt
 ref.txt
+
+# Exclude tex auxilary files
+*aux
+*bbl
+*blg
+*log
+*toc
