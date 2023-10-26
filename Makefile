@@ -10,6 +10,12 @@ test_optBlas.exe: my_dorgqr.o test.o test.c
 my_dorgqr.o: my_dorgqr.f
 	$(FC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
 
+my_dorgqr_v1.o: my_dorgqr_v1.f
+	$(FC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
+
+my_dorgqr_v2.o: my_dorgqr_v2.f
+	$(FC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
+
 test.o: test.c 
 	$(CC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^
 
@@ -25,8 +31,14 @@ test_refDorgqr.exe: test.o dorgqr.o test.c
 test_mklDorgqr.exe: test.o test.c
 	$(FC) $(CFLAGS) test.o $(OPTBLAS) -o $@
 
+test_v2.exe: test.o my_dorgqr_v2.o test.c
+	$(FC) $(CFLAGS) test.o my_dorgqr_v2.o $(OPTBLAS) -o $@
+
+test_v1.exe: test.o my_dorgqr_v1.o test.c
+	$(FC) $(CFLAGS) test.o my_dorgqr_v1.o $(OPTBLAS) -o $@
+
 driver: driver.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean:
-	rm *o driver test.exe test_optBlas.exe test_refDorgqr.exe test_mklDorgqr.exe
+	rm *o driver test*exe

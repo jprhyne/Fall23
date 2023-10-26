@@ -261,9 +261,9 @@
 *         This helps us reduce the memory footprint by lowering WORK to
 *         be of only size IB
 *         CALL DLACPY('All', N-K, IB, A(I+IB,I), LDA,WORK(IB+1),LDWORK)
-         DO 36 JJ = 1, IB
-           DO 26 II = 1, N-K
-              A( I+JJ-1, I+IB+II-1 ) = A( I+IB+II-1, I+JJ-1 )
+         DO 36 JJ = K - NB + 1, K
+           DO 26 II = K + 1, N
+              A( JJ, II ) = A( II, JJ)
    26      CONTINUE
    36    CONTINUE
 *
