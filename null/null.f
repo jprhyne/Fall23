@@ -5,7 +5,7 @@
 *  (2) Determine how many 
 *
 *
-      SUBROUTINE(M,N,A,LDA,EPS,INFO)
+      SUBROUTINE NULLS(M,N,A,LDA,EPS,INFO)
 *
 *        Arguments 
 *
@@ -15,8 +15,8 @@
 *
 *        Local scalars
 *
-         INTEGER LWORK, I, J, K
-         DOUBLE PRECISION S(N)
+         INTEGER LWORK, I, J, K, NB
+         DOUBLE PRECISION S(N), TAU(N)
 *        allocatable array to be used for workspaces
 *        This will be refactored out once we know all the functions we
 *        are going to be calling
@@ -26,6 +26,9 @@
 *        External functions
 *
          EXTERNAL DGESVD 
+*     .. External Functions ..
+      INTEGER           ILAENV
+      EXTERNAL          ILAENV
 
 *
 *        Argument checking
@@ -53,17 +56,17 @@
 *
          LWORK=-1
          ALLOCATE(WORK(1))
-         DGESVD('No U', 'No V', M, N, A, LDA, S, A, LDA, A, LDA, WORK,
-     $            LWORK, INFO)
-         DEALLOCATE(WORK)
+         CALL DGESVD('No U', 'No V', M, N, A, LDA, S, A, LDA, A, LDA,
+     $            WORK, LWORK, INFO)
          LWORK = WORK(1)
+         DEALLOCATE(WORK)
          ALLOCATE(WORK(LWORK))
 *
 *        Now, we actually call DGESVD to compute the singular values of
 *        A.
 *
-         DGESVD('No U', 'No V', M, N, A, LDA, S, A, LDA, A, LDA, WORK,
-     $            LWORK, INFO)
+         CALL DGESVD('No U', 'No V', M, N, A, LDA, S, A, LDA, A, LDA,
+     $            WORK, LWORK, INFO)
 *
 *        Determine how many singular values are less than EPS. This will
 *        be how many extra columns we want to grab
@@ -71,17 +74,32 @@
 *        TODO: Actually use this value. Right now we just compute it and
 *        ignore it by assuming that A is full rank
 *
-         DO 10 I=N, 1, -1
-            IF(S(I).LT.EPS) THEN
-               K = I
-            END IF
-   10    CONTINUE
-*
-*        If A was full rank, we just need to create Q2
-*
-         DO 10 I=N, 1, -1
-         DO 10 I=N, 1, -1
-         DO 10 I=N, 1, -1
-         asdf
+         IF(S(N).LT.EPS) THEN
+            DO 10 I=N, 1, -1
+               IF(S(I).LT.EPS) THEN
+                  K = I
+               END IF
+   10       CONTINUE
+         ELSE
+            K = N
+         END IF
+*        Find the QR decomposition of A represented as householder
+*        reflectors. 
+*        Workspace query
+         LWORK=-1
+         CALL DGEQRF(M, N, A, LDA, TAU, WORK, LWORK, INFO)
 
+         LWORK = WORK(1)
+         DEALLOCATE(WORK)
+         ALLOCATE(WORK(LWORK))
+         CALL DGEQRF(M, N, A, LDA, TAU, WORK, LWORK, INFO)
+*        After this loop, we will know the first index k such that the
+*        k^th singular value is below epsilon. If K = 0 then A is full
+*        rank.
+*
+         NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
+         DEALLOCATE(WORK)
+         ALLOCATE(WORK(NB*NB))
+         CALL COMPUTEQ2(M,N,K,A,LDA,WORK, NB, TAU)
+         INFO = K
       END

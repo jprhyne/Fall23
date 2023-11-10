@@ -20,26 +20,35 @@ int main()
     create_dmat_(&m,&n,sigma,A,&lda,&info);
     // Find the svd of A to confirm we did it correctly
     double *S = (double *) malloc(n*sizeof(double));
-    char JobU = 'N';
+    char JobU = 'T';
     char JobVT= 'N';
     double workQ[1];
     int lwork = -1;
     info = 0;
+    /*
     dgesvd_(&JobU, &JobVT, &m, &n, A, &lda, S, NULL, &m, NULL, &n, workQ, &lwork, &info);
     // allocate the workspace now
     double *work = (double *) malloc(workQ[0] * sizeof(double));
     lwork = (int) workQ[0];
     dgesvd_(&JobU, &JobVT, &m, &n, A, &lda, S, NULL, &m, NULL, &n, work, &lwork, &info);
-
-    for (int i = 0; i < n; i++)
-        printf("%lf\n",S[i]);
-    printf("\n\n\n");
-    for (int i = 0; i < n; i++)
-        printf("%lf\n",sigma[i] - S[i]);
-
-
+    */
+    // Now we call our nullspace computation routine
+    double eps = 1e-6;
+    // Copy A into a new matrix to be used for storage
+    double *ABak = (double *) malloc(m*n*sizeof(double));
+    for (int i = 0; i < m * n; i++)
+        ABak[i] = A[i];
+    nulls_(&m,&n,&A,&m,&eps,&info);
+    double *C = (double *) malloc(m*n*sizeof(double));
+    double one = 1.0;
+    double zero= 0.0;
+    int k = n - info;
+    for (
+    //dgemm_(&JobU, &JobVT, &m, &n, &k, &one, ABak, &m, A, &m, &zero, C, &m);
     free(A);
+    free(ABak);
+    free(C);
     free(sigma);
     free(S);
-    free(work);
+    //free(work);
 }
