@@ -18,7 +18,6 @@ do
             echo "Reference dorgqr"
             ./test.exe -m $m -n $n -k $k -t
 
-            echo "Optimized dorgqr"
             echo "my_dorgqr"
             ./test_optBlas.exe -m $m -n $n -k $k -t
             sleep 1

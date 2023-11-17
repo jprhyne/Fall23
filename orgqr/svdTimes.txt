@@ -1,0 +1,6 @@
+m = 10000, n = 1000
+Time for unmodified DORGQR:	96.119056
+Time for modified DORGQR:	91.142157
+m = 30000, n = 1000
+Time for unmodified DORGQR:	863.822314
+Time for modified DORGQR:	828.149557

@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
     m = 30;
     n = 20;
     k = n/2 + 1;
-    nb = 3; // Choose a default nb value that is NOT a factor of m nor n
+    nb = 3; // Choose a default nb value that is NOT a factor of k
     lda = -1;
     ldq = -1;
     // Flag that helps facilitate testing with the driver.c file

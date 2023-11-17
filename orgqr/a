@@ -1,0 +1,16 @@
+gcc -c -g timeSVD.c -o timeSVD.o
+timeSVD.c: In function ‘main’:
+timeSVD.c:44:27: warning: implicit declaration of function ‘min’; did you mean ‘main’? [-Wimplicit-function-declaration]
+   44 |     s = (double *) calloc(min(m,n), sizeof(double));
+      |                           ^~~
+      |                           main
+timeSVD.c:61:5: error: too few arguments to function ‘dgesvd_’
+   61 |     dgesvd_(&jobU, &jobVt, &m, &n, A, &lda, s, U, &lda, A, &lda, work, &lwork, &info);
+      |     ^~~~~~~
+In file included from /home/lidesia/aocl/4.1.0/gcc/include/lapack.h:11,
+                 from /home/lidesia/aocl/4.1.0/gcc/include/lapacke.h:36,
+                 from timeSVD.c:8:
+/home/lidesia/aocl/4.1.0/gcc/include/lapack.h:3397:6: note: declared here
+ 3397 | void LAPACK_dgesvd_base(
+      |      ^~~~~~~~~~~~~~~~~~
+make: *** [Makefile:37: timeSVD.o] Error 1
