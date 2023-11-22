@@ -1,0 +1,5 @@
+./test_optBlas.exe
+dgeqrf dorg2r LAPACK | m =    4, n =    4, k =    4, lda =    4, ldq =    4,              | time = 0.000436   GFlop/sec = 0.000196| repres  =   nan    ortho =   nan 
+
+./test.exe
+dgeqrf dorg2r LAPACK | m =    4, n =    4, k =    4, lda =    4, ldq =    4,              | time = 0.000003   GFlop/sec = 0.027532| repres  = 1.5e-16    ortho = 4.9e-16 
