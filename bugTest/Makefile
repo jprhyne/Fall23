@@ -3,7 +3,7 @@ include make.inc
 default: test.exe test_optBlas.exe
 
 clean:
-	rm *o driver *exe
+	rm *o *exe
 
 # Executable compilations
 test_optBlas.exe: test.o test.c
