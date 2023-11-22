@@ -1,5 +1,7 @@
-./test_optBlas.exe
-dgeqrf dorg2r LAPACK | m =    4, n =    4, k =    4, lda =    4, ldq =    4,              | time = 0.000436   GFlop/sec = 0.000196| repres  =   nan    ortho =   nan 
-
 ./test.exe
-dgeqrf dorg2r LAPACK | m =    4, n =    4, k =    4, lda =    4, ldq =    4,              | time = 0.000003   GFlop/sec = 0.027532| repres  = 1.5e-16    ortho = 4.9e-16 
+dgeqrf dorg2r REF_LAPACK | m =    4, n =    4, k =    4, 		| time = 0.000001 GFlop/sec = 0.089478| repres = 1.5e-16 ortho = 4.9e-16
+dgeqrf dorgqr REF_LAPACK | m =    4, n =    4, k =    4, 		| time = 0.000000 GFlop/sec = inf| repres = 1.5e-16 ortho = 4.9e-16
+
+./test_optBlas.exe
+dgeqrf dorg2r AOCL | m =    4, n =    4, k =    4, 		| time = 0.000520 GFlop/sec = 0.000164| repres =   nan ortho =   nan
+dgeqrf dorgqr AOCL | m =    4, n =    4, k =    4, 		| time = 0.000016 GFlop/sec = 0.005263| repres = 1.6e-16 ortho = 5.4e-16

@@ -16,8 +16,8 @@ timeSVD_opt.exe: timeSVD.o my_dorgqr_v1.o my_dgesvd.o timeSVD.c
 timeSVD.exe: timeSVD.o my_dorgqr.o my_dgesvd.o dgesvd.o timeSVD.c
 	$(FC) $(CFLAGS) timeSVD.o my_dorgqr.o my_dgesvd.o dgesvd.o $(LAPACKLIB) $(BLASLIB) $(LAPACKELIB) -o $@
 
-test_optBlas.exe: my_dorgqr.o test.o test.c
-	$(FC) $(CFLAGS) my_dorgqr.o test.o $(OPTBLAS) -o $@
+test_optBlas.exe: my_dorgqr.o test.o test.c dorgqr.o 
+	$(FC) $(CFLAGS) my_dorgqr.o test.o dorgqr.o $(OPTBLAS) -o $@
 
 test_refDorgqr.exe: test.o dorgqr.o test.c
 	$(FC) $(CFLAGS) test.o $(OPTBLAS) dorgqr.o -o $@
