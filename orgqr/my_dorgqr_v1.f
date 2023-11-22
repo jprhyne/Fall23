@@ -237,9 +237,9 @@
 *     Use unblocked code for the only block.
 *
 *     IF( KK.LT.N )
+*      write(*,*) KK
       IF( KK.EQ.0 )
-     $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
-     $                TAU( KK+1 ), WORK, IINFO )
+     $   CALL DORG2R( M, N, K, A, LDA, TAU, WORK, IINFO )
 *
       IF( KK.GT.0 ) THEN
          I = KK + 1
@@ -315,11 +315,11 @@
 *        Set rows 1:i-1 of current block to zero
 *        NOTE: This is going to be C1 in the following loop
 *
-         DO 45 J = I, I + IB - 1
-            DO 35 L = 1, I - 1
-               A( L, J ) = ZERO
-   35       CONTINUE
-   45    CONTINUE
+*         DO 45 J = I, I + IB - 1
+*            DO 35 L = 1, I - 1
+*               A( L, J ) = ZERO
+*   35       CONTINUE
+*   45    CONTINUE
          DO 50 I = KI + 1, 1, -NB
             IB = NB
 *
@@ -375,16 +375,6 @@
 *
             CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ), WORK,
      $                   IINFO )
-*
-*           Set rows 1:i-1 of current block to zero
-*           Not needed anymore due to us properly taking advantage of
-*           C1 = 0 through above
-*
-*            DO 40 J = I, I + IB - 1
-*               DO 30 L = 1, I - 1
-*                  A( L, J ) = ZERO
-*   30          CONTINUE
-*   40       CONTINUE
    50    CONTINUE
 *        This checks for if K was a perfect multiple of NB
 *        so that we only have a special case for the last block when

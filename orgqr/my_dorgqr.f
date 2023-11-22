@@ -124,7 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
+      SUBROUTINE MY_DORGQR( M, N, K, NB, A, LDA, TAU, WORK, LWORK, INFO)
 *
 *  -- LAPACK computational routine --
 *  -- LAPACK is a software package provided by Univ. of Tennessee,    --
@@ -146,7 +146,7 @@
 *     .. Local Scalars ..
       LOGICAL            LQUERY
       INTEGER            I,II, IB, IINFO, IWS, J,JJ, KI, KK, L, LDWORK,
-     $                   LWKOPT, NB, NBMIN, NX
+     $                   LWKOPT, NB, NBMIN, NX, Z
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           DLARFB, DLARFT, DORG2R, XERBLA
@@ -195,6 +195,11 @@
       IF( N.LE.0 ) THEN
          WORK( 1 ) = 1
          RETURN
+      END IF
+      IF (N.EQ.K) THEN
+         Z=K-1
+      ELSE
+         Z=K
       END IF
 *
       NBMIN = 2

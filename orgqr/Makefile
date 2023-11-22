@@ -4,6 +4,8 @@ default: test.exe driver test_optBlas.exe timeSVD.exe
 
 testDorgqr: test_mklDorgqr.exe test_refDorgqr.exe
 
+nanTest: test_v1.exe test_v1_opt.exe
+
 clean:
 	rm *o driver *exe
 
@@ -26,8 +28,11 @@ test_mklDorgqr.exe: test.o test.c
 test_v2.exe: test.o my_dorgqr_v2.o test.c
 	$(FC) $(CFLAGS) test.o my_dorgqr_v2.o $(OPTBLAS) -o $@
 
-test_v1.exe: test.o my_dorgqr_v1.o test.c
+test_v1_opt.exe: test.o my_dorgqr_v1.o test.c
 	$(FC) $(CFLAGS) test.o my_dorgqr_v1.o $(OPTBLAS) -o $@
+
+test_v1.exe: test.o my_dorgqr_v1.o test.c
+	$(FC) $(CFLAGS) test.o my_dorgqr_v1.o $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
 
 test.exe: my_dorgqr.o test.o test.c
 	$(FC) $(CFLAGS) my_dorgqr.o test.o $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
@@ -46,13 +51,13 @@ dgesvd.o: dgesvd.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 my_dorgqr.o: my_dorgqr.f
-	$(FC) -c $(CFLAGS) $^ -o $@
+	$(FC) -c $(FFLAGS) $^ -o $@
 
 my_dorgqr_v1.o: my_dorgqr_v1.f
-	$(FC) -c $(CFLAGS) $^ -o $@
+	$(FC) -c $(FFLAGS) $^ -o $@
 
 my_dorgqr_v2.o: my_dorgqr_v2.f
-	$(FC) -c $(CFLAGS) $^ -o $@
+	$(FC) -c $(FFLAGS) $^ -o $@
 
 test.o: test.c 
 	$(CC) -c $(CFLAGS) -I$(LAPACKEINC) -I$(CBLASINC) $^ -o $@
