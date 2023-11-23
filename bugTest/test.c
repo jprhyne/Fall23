@@ -1,5 +1,7 @@
 /*
  *  This file is used to demonstrate that there is a bug in AOCL DORG2R
+ *  But this is only the distrubuted version given at https://www.amd.com/en/developer/aocl/dense.html#lapack
+ *  on the date of 23 November 2023
  */
 
 // Facilitates the printing of the source LAPACK implimentation we are using for printing out to the user.
@@ -33,7 +35,7 @@ int main(int argc, char **argv) {
     // Default parameters that demonstrate the bugged behavior.
     // I have found this works for any square matrix for dorg2r
     // and any time where a call to dorg2r from would result in a square 
-    // matrix when calling dorgqr.
+    // matrix when calling my implimentation of dorgqr.
 
     m = 4;
     n = 4;
@@ -56,7 +58,7 @@ int main(int argc, char **argv) {
     lda = m;
     ldq = m;
     char *source = SOURCE;
-    printf("dgeqrf dorg2r %s | m = %4d, n = %4d, k = %4d, \t\t", source, m, n, k);
+    printf("dgeqrf dorg2r %s | m = %4d, n = %4d, k = %4d, \t", source, m, n, k);
 
     A  = (double *) calloc(lda * k,sizeof(double));
     As = (double *) calloc(lda * k, sizeof(double));
@@ -113,12 +115,12 @@ int main(int argc, char **argv) {
     norm_repres_1 = norm_repres_1 / normA;
     free( work );
 
-    printf("| time = %f GFlop/sec = %f| repres = %5.1e ortho = %5.1e\n", 
+    printf("| time = %f GFlop/sec = %f|\nrepres = %5.1e ortho = %5.1e\n", 
             elapsed_refL, perform_refL, norm_repres_1, norm_orth_1);
 
 
     // Now we repeat above, BUT use dorgqr instead of dorg2r. This helps demonstrate our issue
-    printf("dgeqrf dorgqr %s | m = %4d, n = %4d, k = %4d, \t\t", source, m, n, k);
+    printf("dgeqrf dorgqr %s | m = %4d, n = %4d, k = %4d, \t", source, m, n, k);
     // Copy the saved version of A back into A
     info  = LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', m, k, As, lda, A, lda );
     normA = LAPACKE_dlange_work( LAPACK_COL_MAJOR, 'F', m, k, A, lda, work );
@@ -166,7 +168,7 @@ int main(int argc, char **argv) {
     norm_repres_1 = norm_repres_1 / normA;
     free( work );
 
-    printf("| time = %f GFlop/sec = %f| repres = %5.1e ortho = %5.1e\n", 
+    printf("| time = %f GFlop/sec = %f|\nrepres = %5.1e ortho = %5.1e\n", 
             elapsed_refL, perform_refL, norm_repres_1, norm_orth_1);
     free( Q );
     free( A );

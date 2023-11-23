@@ -7,7 +7,7 @@ clean:
 
 # Executable compilations
 test_optBlas.exe: test_opt.o test.c
-	$(FC) -D USE_AOCL $(CFLAGS) test_opt.o $(OPTBLAS) -o $@
+	$(FC) -D USE_AOCL $(CFLAGS) test_opt.o $(LAPACKELIB) $(OPTBLAS) -o $@
 
 test.exe: test.o test.c
 	$(FC) $(CFLAGS) test.o $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
