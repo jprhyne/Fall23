@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
     // In order to compare against dtrmm, we need to pass in 0 as alpha
     double alpha = 0;
     dtrmmoop_(&m, &n, A, &lda, T, &ldt, &alpha, work, &m);
+    // work = T*A
     // Make sure that A = As
     // So we can just check if there is any elements are different
     for (int i = 0; i < lda * n; i++)
@@ -136,7 +137,7 @@ int main(int argc, char *argv[]) {
     dtrmmoop_(&m, &n, A, &lda, T, &ldt, &alpha, work, &m);
 
     // Compute dtrmm
-    dtrmm_(&lChar, &uChar, &nChar, &nChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
+    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
     for (i = 0; i < m; i++)
         for (j = 0; j < n; j++)
             workS[i + j*m] += A[i + j*lda];
@@ -166,7 +167,7 @@ int main(int argc, char *argv[]) {
     dtrmmoop_(&m, &n, A, &lda, T, &ldt, &alpha, work, &m);
 
     // Compute dtrmm
-    dtrmm_(&lChar, &uChar, &nChar, &nChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
+    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
     for (i = 0; i < m; i++) {
         for (j = 0; j < n; j++) {
             workS[i + j*m] = alpha * workS[i+j*m] + A[i+j*lda];

@@ -14,7 +14,7 @@
 *
 *        .. Array arguments ..
 *
-         DOUBLE PRECISION  A(LDA,*), T(LDA,*), C(LDA,*)
+         DOUBLE PRECISION  A(LDA,*), T(LDT,*), C(LDA,*)
 
 *
 *        .. Local variables ..
@@ -30,7 +30,7 @@
          IF (M.EQ.0 .OR. N.EQ.0) RETURN
 *
 *        The formula we are using is for all valid i,j 
-*        C(i,j) = sum_1^jA(i,k)*T(k,j) + alpha*C(i,j)
+*        C(i,j) = sum_I^MT(i,k)*A(k,j) + alpha*C(i,j)
 *
          DO 50 J = 1,N
             DO 40 I = 1,M
