@@ -23,8 +23,7 @@
 *        Local parameters
 *
          DOUBLE PRECISION ONE, ZERO
-         ONE = 1.0
-         ZERO = 0.0
+         PARAMETER(ONE=1.0d+0, ZERO=0.0d+0)
 *
 *        Beginning of executable statements
 *
@@ -48,6 +47,7 @@
             DTRMM('Right', 'Lower Triangular', 'Transpose', 'Unit', K,
       $      N - K, ONE, Q(K+1, K+1), LDQ, Q(1,K+1), LDQ)
 *           Compute T_{1,2} = T_{1,2} + T_{1,1}V_{1,2}^\top
+            DTRMMOOP()
          END IF
 
             

@@ -93,8 +93,9 @@ int main(int argc, char *argv[]) {
     dlacpy_(&aChar, &m, &n, A, &lda, As, &lda, dummy);
     // Call dtrmmoop
     // In order to compare against dtrmm, we need to pass in 0 as alpha
+    /*
     double alpha = 0;
-    dtrmmoop_(&m, &n, A, &lda, T, &ldt, &alpha, work, &m);
+    dtrmmoop_(&m, &n, A, &lda, T, &ldt, work, &m);
     // work = T*A
     // Make sure that A = As
     // So we can just check if there is any elements are different
@@ -118,6 +119,7 @@ int main(int argc, char *argv[]) {
     // different roundoff errors.
     norm_diff_F = sqrt(norm_diff_F);
     printf("error for alpha =%4.1lf: %1.7e\n", alpha, norm_diff_F);
+    */
 
     // Now, we want to check the new behavior. IE does dtrmmoop correctly use alpha != 0
     
@@ -133,8 +135,8 @@ int main(int argc, char *argv[]) {
     dlacpy_(&aChar, &m, &n, As, &lda, A, &lda, dummy);
 
     // Compute ours
-    alpha = 1;
-    dtrmmoop_(&m, &n, A, &lda, T, &ldt, &alpha, work, &m);
+    double alpha = 1;
+    dtrmmoop_(&m, &n, A, &lda, T, &ldt, work, &m);
 
     // Compute dtrmm
     dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
@@ -144,7 +146,7 @@ int main(int argc, char *argv[]) {
 
     // Compare the matrices, work and workS. These should be the exact same for REFLAPACK. 
     // May differ for OPTBLAS
-    norm_diff_F = 0;
+    double norm_diff_F = 0;
     for (i = 0; i < m; i++) {
         for (j = 0; j < n; j++) {
             double tmp = work[i+j*m] - workS[i + j*m];
@@ -153,6 +155,7 @@ int main(int argc, char *argv[]) {
     }
     norm_diff_F = sqrt(norm_diff_F);
     printf("error for alpha =%4.1lf: %1.7e\n", alpha, norm_diff_F);
+    /*
 
     // Do above but with alpha != 0 and alpha != 1
     for (i = 0; i < m * n; i++)
@@ -186,6 +189,7 @@ int main(int argc, char *argv[]) {
     norm_diff_F = sqrt(norm_diff_F);
     printf("error for alpha =%4.1lf: %1.7e\n", alpha, norm_diff_F);
 
+    */
     // Note: As long as all 3 errors are roughly similar, then we should be alright.
 
     // free memory
