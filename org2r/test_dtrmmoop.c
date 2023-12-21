@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     int info, lda, ldt, m, n, k, lwork, nb, i, j;
     int workQuery = -1;
     // double variables
-    double *A, *As, *T, *work, *workS=NULL;
+    double *A, *As, *ATrmm, *T, *work, *workS=NULL;
     double normA;
     double elapsed_refL, norm_orth_1, norm_repres_1;
     double zero = 0;
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if( lda < 0 ) lda = m;
+    if( lda < 0 ) lda = n;
     if( ldt < 0 ) ldt = m;
 
     char *source = SOURCE;
@@ -74,23 +74,24 @@ int main(int argc, char *argv[]) {
     //  be multiplying a triangular matrix we want to 
     //  fill up the entire matrix so that we can test 
     //  it properly takes advantage of this fact
-    // A will be m by n
-    A  = (double *) malloc (lda * n * sizeof(double));
-    As = (double *) malloc (lda * n * sizeof(double));
+    // A will be n by m
+    A  = (double *) malloc (lda * m * sizeof(double));
+    ATrmm = (double *) malloc (m * n* sizeof(double));
+    As = (double *) malloc (lda * m * sizeof(double));
     // T will be m by m
     T  = (double *) malloc (ldt * m * sizeof(double));
     // Create a workspace that will store the output of dtrmmoop
     work = (double *) malloc (m * n * sizeof(double));
 
 
-    for (i = 0; i < lda * n; i++)
+    for (i = 0; i < lda * m; i++)
         A[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
     for (i = 0; i < ldt * m; i++)
         T[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
     // Copy over A into As. Even though ours is out of 
     // place, this will allow us to check for no change
     // in A
-    dlacpy_(&aChar, &m, &n, A, &lda, As, &lda, dummy);
+    dlacpy_(&aChar, &n, &m, A, &lda, As, &lda, dummy);
     // Call dtrmmoop
     // In order to compare against dtrmm, we need to pass in 0 as alpha
     /*
@@ -131,18 +132,29 @@ int main(int argc, char *argv[]) {
     workS = (double *) malloc(m * n * sizeof(double));
     // Copy work into workS
     dlacpy_(&aChar, &m, &n, work, &m, workS, &m, dummy);
-    // Copy As back into A
-    dlacpy_(&aChar, &m, &n, As, &lda, A, &lda, dummy);
 
     // Compute ours
     double alpha = 1;
     dtrmmoop_(&m, &n, A, &lda, T, &ldt, work, &m);
+    // work = T*A**T
+    // Make sure that A = As
+    // So we can just check if there is any elements are different
+    for (int i = 0; i < lda * m; i++)
+        if (A[i] != As[i])
+            // report to user
+            printf("Difference in A at index %4d\n", i);
+    // Copy A**T into ATrmm for dtrmm
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            ATrmm[j + i*m] = A[i + j*lda];
+        }
+    }
 
     // Compute dtrmm
-    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
+    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, ATrmm, &m, dummy, dummy, dummy, dummy);
     for (i = 0; i < m; i++)
         for (j = 0; j < n; j++)
-            workS[i + j*m] += A[i + j*lda];
+            workS[i + j*m] += ATrmm[i + j*m];
 
     // Compare the matrices, work and workS. These should be the exact same for REFLAPACK. 
     // May differ for OPTBLAS
@@ -195,6 +207,7 @@ int main(int argc, char *argv[]) {
     // free memory
     free(A);
     free(As);
+    free(ATrmm);
     free(T);
     free(work);
     free(workS);

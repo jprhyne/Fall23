@@ -47,7 +47,7 @@
             DTRMM('Right', 'Lower Triangular', 'Transpose', 'Unit', K,
       $      N - K, ONE, Q(K+1, K+1), LDQ, Q(1,K+1), LDQ)
 *           Compute T_{1,2} = T_{1,2} + T_{1,1}V_{1,2}^\top
-            DTRMMOOP()
+            DTRMMOOP(K, N - K, )
          END IF
 
             
