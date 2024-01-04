@@ -1,4 +1,4 @@
-* This subroutine will be used to essentially do a dtrmm('L','U','N','N',...) but not in
+* This subroutine will be used to essentially do a dtrmm('L','N','N','N',...) but not in
 * place on the transpose of matrix A
 * We compute C = T*A**T + C
 *     where T is upper unit triangular and A is rectangular
@@ -70,8 +70,8 @@
          END IF
 *        Base cases
          IF (M.EQ.1) THEN
-*           In this case, T is 1x1 unit upper triangular matrix, so it is
-*           just 1. Therefore, we need to compute C = C + A
+*           In this case, T is 1x1 upper triangular matrix.
+*           Therefore, we need to compute C = C + A*T(1,1)
 *
 *           This special case is done because for some reason, when we go to the
 *           10 do loop, we have j=1,1 and this somehow goes to j=2. Not sure
@@ -79,10 +79,10 @@
 *           around with removing later as a last cleanup step).
 *
             IF (N.EQ.1) THEN
-               C(1,1) = C(1,1) + A(1,1)
+               C(1,1) = C(1,1) + A(1,1)*T(1,1)
             ELSE
                DO 10 J = 1, N
-                  C(1,J) = C(1,J) + A(J,1)
+                  C(1,J) = C(1,J) + A(J,1)*T(1,1)
    10          CONTINUE
             END IF
             RETURN
@@ -92,11 +92,12 @@
 *           also out of place.
 *           We accomplish this by computing each element of C through ddot.
             DO 20 I = 1,M
-               C(I,1) = C(I,1) + A(1, I)
-               IF (I.LT.M) THEN
-                  C(I,1) = C(I,1) + DDOT(M-I, T(I,I+1), LDT, 
-     $                                   A(1,I+1),LDA)
-               END IF
+               C(I,1) = C(I,1) + DDOT(M-I+1, T(I,I), LDT, A(1,I),LDA)
+*               C(I,1) = C(I,1) + A(1, I)
+*               IF (I.LT.M) THEN
+*                  C(I,1) = C(I,1) + DDOT(M-I, T(I,I+1), LDT, 
+*     $                                   A(1,I+1),LDA)
+*               END IF
    20       CONTINUE
             RETURN
          END IF

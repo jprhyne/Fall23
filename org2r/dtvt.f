@@ -6,6 +6,19 @@
 *     Q(in/out): Matrix that will hold V and T as described below.
 *        V is input only
 *        T is input/output
+*
+*         |-|
+*     Q = |T|
+*         |-|
+*         |V|
+*         |-|
+*
+*     V = |---|
+*         |V_1|
+*         |---|
+*         |V_2|
+*         |---|
+*
 
       SUBROUTINE DTVT(N, Q, LDQ)
 *

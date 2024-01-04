@@ -64,18 +64,11 @@ int main(int argc, char *argv[]) {
     }
 
     if( ldv < 0 ) ldv = m;
-    if( ldt < 0 ) ldt = m;
+    if( ldt < 0 ) ldt = n;
 
     char *source = SOURCE;
     printf("dtvt %s: m = %4d, n = %4d, ldv = %4d, ldt = %4d\n",source, m, n, ldv, ldt);
 
-    // Generate two matrices. one is upper triangular and one is a tall and skinny rectangle
-    // T = T*V**T
-    // T is n by n
-    // V is m by n
-    V = (double *) malloc(ldv * n * sizeof(double));
-    T = (double *) malloc(ldt * n * sizeof(double));
-    for (i = 0; i < ldv * n; i++)
-
-
+    // Generate Q as a random m by n matrix where m is
+    // larger than n
 }

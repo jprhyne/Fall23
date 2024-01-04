@@ -92,37 +92,6 @@ int main(int argc, char *argv[]) {
     // place, this will allow us to check for no change
     // in A
     dlacpy_(&aChar, &n, &m, A, &lda, As, &lda, dummy);
-    // Call dtrmmoop
-    // In order to compare against dtrmm, we need to pass in 0 as alpha
-    /*
-    double alpha = 0;
-    dtrmmoop_(&m, &n, A, &lda, T, &ldt, work, &m);
-    // work = T*A
-    // Make sure that A = As
-    // So we can just check if there is any elements are different
-    for (int i = 0; i < lda * n; i++)
-        if (A[i] != As[i])
-            // report to user
-            printf("Difference in A at index %4d\n", i);
-    
-    // Assuming that A = As, we now call dtrmm with A and T
-    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
-
-    // Compare A and work to make sure they are the same. Since we are only needing to compute the Frobenius norm
-    double norm_diff_F = 0.0;
-    for (i = 0; i < m; i++) {
-        for (j = 0; j < n; j++) {
-            double tmp = work[i + j*m] - A[i + j*lda];
-            norm_diff_F += tmp*tmp;
-        }
-    }
-    // Actually computing the norm as the optimized version may be a different algorithm leading to
-    // different roundoff errors.
-    norm_diff_F = sqrt(norm_diff_F);
-    printf("error for alpha =%4.1lf: %1.7e\n", alpha, norm_diff_F);
-    */
-
-    // Now, we want to check the new behavior. IE does dtrmmoop correctly use alpha != 0
     
     // Set work to be something random.
     for (i = 0; i < m * n; i++)
@@ -151,7 +120,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Compute dtrmm
-    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, ATrmm, &m, dummy, dummy, dummy, dummy);
+    dtrmm_(&lChar, &uChar, &nChar, &nChar, &m, &n, &one, T, &ldt, ATrmm, &m, dummy, dummy, dummy, dummy);
     for (i = 0; i < m; i++)
         for (j = 0; j < n; j++)
             workS[i + j*m] += ATrmm[i + j*m];
@@ -167,42 +136,6 @@ int main(int argc, char *argv[]) {
     }
     norm_diff_F = sqrt(norm_diff_F);
     printf("error for alpha =%4.1lf: %1.7e\n", alpha, norm_diff_F);
-    /*
-
-    // Do above but with alpha != 0 and alpha != 1
-    for (i = 0; i < m * n; i++)
-        work[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
-
-    dlacpy_(&aChar, &m, &n, work, &m, workS, &m, dummy);
-    // Copy As back into A
-    dlacpy_(&aChar, &m, &n, As, &lda, A, &lda, dummy);
-
-    // Compute ours
-    alpha = 3.5;
-    dtrmmoop_(&m, &n, A, &lda, T, &ldt, &alpha, work, &m);
-
-    // Compute dtrmm
-    dtrmm_(&lChar, &uChar, &nChar, &uChar, &m, &n, &one, T, &ldt, A, &lda, dummy, dummy, dummy, dummy);
-    for (i = 0; i < m; i++) {
-        for (j = 0; j < n; j++) {
-            workS[i + j*m] = alpha * workS[i+j*m] + A[i+j*lda];
-        }
-    }
-
-    // Compare the matrices, work and workS. These should be the exact same for REFLAPACK. 
-    // May differ for OPTBLAS
-    norm_diff_F = 0;
-    for (i = 0; i < m; i++) {
-        for (j = 0; j < n; j++) {
-            double tmp = work[i+j*m] - workS[i + j*m];
-            norm_diff_F += tmp * tmp;
-        }
-    }
-    norm_diff_F = sqrt(norm_diff_F);
-    printf("error for alpha =%4.1lf: %1.7e\n", alpha, norm_diff_F);
-
-    */
-    // Note: As long as all 3 errors are roughly similar, then we should be alright.
 
     // free memory
     free(A);
