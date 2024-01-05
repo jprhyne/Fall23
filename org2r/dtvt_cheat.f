@@ -54,7 +54,8 @@
          CALL DTRMM('Right', 'Lower', 'Transpose', 'Unit', K, N - K,
      $      ONE, Q(K+1,K+1), LDQ, Q(1,K+1), LDQ)
          ! Compute T_12 = T_12 + T_11*V_12^\top
-         CALL DTRMMOOP(K, N - K, Q(K,1), LDQ, Q(1,1), LDQ, Q(1,K+1), LDQ)
+         CALL DTRMMOOP(K, N - K, Q(K,1), LDQ, Q(1,1), LDQ, Q(1,K+1), 
+     $      LDQ)
 
          ! Compute T_11 = T_11*V_11^\top
          ! Allocate T and V
@@ -86,4 +87,8 @@
      $         N-K, n-K, ONE, V, N-K, T, N-K)
          ! Copy T back into T_22
          CALL DLACPY('Upper', N-K, N-K, T, N-K, Q(K+1,K+1), LDQ)
+
+         ! Free the memory
+         DEALLOCATE(V)
+         DEALLOCATE(T)
       END SUBROUTINE 

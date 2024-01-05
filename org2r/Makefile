@@ -1,6 +1,6 @@
 include make.inc
 # Group definitions
-default: overallTest.exe overallTest_optBlas.exe test_dtrmmoop.exe test_dtrmmoop_optBlas.exe driver.exe
+default: overallTest.exe overallTest_optBlas.exe test_dtrmmoop.exe test_dtrmmoop_optBlas.exe driver_trmm.exe driver_dorg2r.exe
 
 clean:
 	rm *o *exe
@@ -21,13 +21,31 @@ test_dtrmmoop_optBlas.exe: test_dtrmmoop_opt.o test_dtrmmoop.c dtrmmoop.o
 test_dtvt.exe: test_dtvt.o dtvt.o test_dtvt.c
 	$(FC) $(CFLAGS) test_dtvt.o dtvt.o -o $@
 
-driver.exe: driver.o testdtrmmoop.o dtrmmoop.o
-	$(FC) $(CFLAGS) driver.o testdtrmmoop.o dtrmmoop.o $(LAPACKLIB) $(BLASLIB) -o $@
+driver_trmm.exe: driver_trmm.o testdtrmmoop.o dtrmmoop.o
+	$(FC) $(CFLAGS) driver_trmm.o testdtrmmoop.o dtrmmoop.o $(LAPACKLIB) $(BLASLIB) -o $@
+
+driver_dorg2r.exe: driver_dorg2r.o test_dorg2r.o my_dorg2r_cheat.o lumm_cheat.o dtvt_cheat.o dtrmmoop.o
+	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
 
 # Object file creations
 
-driver.o: driver.c
+driver_trmm.o: driver_trmm.c
 	$(CC) -c $(CFLAGS) $^ -o $@
+
+driver_dorg2r.o: driver_dorg2r.c
+	$(CC) -c $(CFLAGS) $^ -o $@
+
+test_dorg2r.o: test_dorg2r.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+my_dorg2r_cheat.o: my_dorg2r_cheat.f
+	$(CC) -c $(CFLAGS) $^ -o $@
+
+lumm_cheat.o: lumm_cheat.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+dtvt_cheat.o: dtvt_cheat.f
+	$(FC) -c $(FFLAGS) $^ -o $@
 
 testdtrmmoop.o: testdtrmmoop.f
 	$(FC) -c $(FFLAGS) $^ -o $@
