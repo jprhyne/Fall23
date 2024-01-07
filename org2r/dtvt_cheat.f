@@ -59,20 +59,23 @@
 
          ! Compute T_11 = T_11*V_11^\top
          ! Allocate T and V
-         ALLOCATE(T(K,K))
-         ALLOCATE(V(K,K))
-         ! Copy T_11 into a matrix T
-         CALL DLACPY('Upper', K, K, Q, LDQ, T, K)
-         ! Copy V_11 into a matrix V
-         CALL DLACPY('Lower', K, K, Q, LDQ, V, K)
-         ! Compute T = T*V^\top (TRMM with A = V_11)
-         CALL DTRMM('Right', 'Lower', 'Transpose', 'Unit',
-     $         K, K, ONE, V, K, T, K)
-         ! Copy T back into T_11
-         CALL DLACPY('Upper', K, K, T, K, Q, LDQ)
-         ! Free the memory
-         DEALLOCATE(V)
-         DEALLOCATE(T)
+         IF (K.NE.0) THEN
+
+            ALLOCATE(T(K,K))
+            ALLOCATE(V(K,K))
+            ! Copy T_11 into a matrix T
+            CALL DLACPY('Upper', K, K, Q, LDQ, T, K)
+            ! Copy V_11 into a matrix V
+            CALL DLACPY('Lower', K, K, Q, LDQ, V, K)
+            ! Compute T = T*V^\top (TRMM with A = V_11)
+            CALL DTRMM('Right', 'Lower', 'Transpose', 'Unit',
+     $            K, K, ONE, V, K, T, K)
+            ! Copy T back into T_11
+            CALL DLACPY('Upper', K, K, T, K, Q, LDQ)
+            ! Free the memory
+            DEALLOCATE(V)
+            DEALLOCATE(T)
+         END IF
 
          ! Compute T_22 = T_22*V_22
          ! Allocate T and V

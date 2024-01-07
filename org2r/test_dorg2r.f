@@ -31,6 +31,8 @@
          ALLOCATE(WORK(1))
          ALLOCATE(TAU(K))
          ALLOCATE(T(N,N))
+         ! Generate a random A
+         CALL RANDOM_NUMBER(A)
 
          CALL DLACPY('All', M, K, A, LDA, As, LDA)
          NORMA = DLANGE('Frobenius', M, K, A, LDA, WORK)
@@ -46,10 +48,10 @@
 
          DEALLOCATE(WORK)
          ! Compute the triangular factor T
-         CALL DLARFT('Forward', 'Column', K, N, Q, LDQ, TAU, T, N)
+         CALL DLARFT('Forward', 'Column', N, K, Q, LDQ, TAU, T, N)
 
          ! Copy T into where R was inside Q
-         CALL DLACPY('Upper', N, N, T, N, A, LDA)
+         CALL DLACPY('Upper', N, N, T, N, Q, LDQ)
 
          ! Now call MY_DORG2R
          CALL MY_DORG2R_CHEAT(M, N, Q, LDQ)

@@ -10,49 +10,26 @@
          ! Scalar variables
          INTEGER           I, J
          ! Matrix variables
-         DOUBLE PRECISION, ALLOCATABLE :: Ls(:,:), Us(:,:)
+         DOUBLE PRECISION, ALLOCATABLE :: A(:,:)
 
          ! Parameters
          DOUBLE PRECISION ONE
          PARAMETER(ONE=1.0D+0)
-         ! We overwrite L as we need to choose one.
-         ALLOCATE(Ls(N, N))
-         ALLOCATE(Us(N, N))
 
-         CALL DLACPY('Lower', N, N, L, LDL, Ls, N)
+         ALLOCATE(A(N,N))
 
-         IF(LDIAG.EQ.'U'.OR.LDIAG.EQ.'u') THEN
-            DO I = 1, N
-               Ls(I,I) = 1.0
-            END DO
-         END IF
-         DO I = 1, N-1
-            DO J = I+1, N
-               Ls(I,J) = 0.0
+         DO I = 1, N
+            DO J = 1, N
+               A(I,J) = 0
             END DO
          END DO
 
-         CALL DLACPY('Upper', N, N, U, LDU, Us, N)
-         IF(UDIAG.EQ.'U'.OR.UDIAG.EQ.'u') THEN
-            DO I = 1, N
-               Us(I,I) = 1.0
-            END DO
-         END IF
-         DO I = 2, N
-            DO J = 1, I - 1
-               Us(I,J) = 0.0
-            END DO
-         END DO
-         ! A = L, B = U
-         CALL DTRMM('Left', 'Lower', 'No-transpose', LDIAG, N, N, ONE,
-     $      Ls, N, Us, N)
+         DO 10 I = N, 1, -1
+            CALL DGER(N, N, ONE, L(I,I), 1, U(I,I), LDU, A(I,I), N)
+   10    CONTINUE
 
-         ! Copy Ls back into L
+         CALL DLACPY('All', N, N, A, N, L, LDU)
 
-         CALL DLACPY('All',N, N, Ls, N, L, LDL)
-
-         ! Free memory
-         DEALLOCATE(Ls)
-         DEALLOCATE(Us)
+         DEALLOCATE(A)
 
       END SUBROUTINE
