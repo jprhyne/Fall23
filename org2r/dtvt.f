@@ -3,7 +3,7 @@
 *
 *     Parameters
 *     N(in):     Number of columns in the matrix Q
-*     Q(in/out): Matrix that will hold V and T as described below.
+*     Q(in/out): on input Matrix that will hold V and T as described below.
 *        V is input only
 *        T is input/output
 *
@@ -18,9 +18,12 @@
 *         |---|
 *         |V_2|
 *         |---|
+*        On output, we replace T with T*V_1**T
+*
+*
 *
 
-      SUBROUTINE DTVT(N, Q, LDQ)
+      RECURSIVE SUBROUTINE DTVT(N, Q, LDQ)
 *
 *        Input paramaters
 *
@@ -31,6 +34,10 @@
 *        Local variables
 *
          INTEGER           K
+*
+*        External subroutines
+*
+         EXTERNAL DTRMM, DTRMMOOP
 
 *
 *        Local parameters
@@ -43,24 +50,33 @@
 *
 *        Base case
 *
-         IF (N.EQ.2) THEN
+         IF (N.LT.2) THEN
+            RETURN
+         ELSE IF (N.EQ.2) THEN
             Q(1,2) = Q(1,1)*Q(2,1) + Q(1,2)
          ELSE IF (N.EQ.3) THEN
 *           Manual computation of 
 *              T_{1,2} = T_{1,1}V_{1,2} + T_{1,2}V_{2,2}
             Q(1,3) = Q(1,1)*Q(3,1) + Q(1,2)*Q(3,2) + Q(1,3)
             Q(1,2) = Q(1,1)*Q(2,1) + Q(1,2)
-            DTVT(N-1, Q(2,2), LDQ)
+            CALL DTVT(N-1, Q(2,2), LDQ)
          ELSE
 *
 *        Recursive case
 *
             K = N / 2
 *           Computes T_{1,2} = T_{1,2}V_{2,2}^\top
-            DTRMM('Right', 'Lower Triangular', 'Transpose', 'Unit', K,
-      $      N - K, ONE, Q(K+1, K+1), LDQ, Q(1,K+1), LDQ)
-*           Compute T_{1,2} = T_{1,2} + T_{1,1}V_{1,2}^\top
-            DTRMMOOP(K, N - K, )
+            CALL DTRMM('Right', 'Lower', 'Transpose', 'Unit', K, N - K, 
+     $         ONE, Q(K + 1, K + 1), LDQ, Q(1, K + 1), LDQ)
+*           Compute T_{1,2} = T_{1,2} + T_{1,1}V_{2,1}^\top
+            CALL DTRMMOOP(K, N - K, Q(K + 1, 1), LDQ, Q, LDQ, 
+     $         Q(1, K + 1), LDQ)
+
+*           Compute T_{1,1} = T_{1,1}V_{1,1}^\top
+            CALL DTVT(K, Q, LDQ)
+
+*           Compute T_{2,2} = T_{2,2}V_{2,2}^\top
+            CALL DTVT(N-K, Q(K + 1, K + 1), LDQ)
          END IF
 
             

@@ -4,26 +4,27 @@
          ! Local variables
          DOUBLE PRECISION  NORMF, TMP
 
-         INTEGER           I, J
+         INTEGER           I, J, LDQ
 
          ! Local arrays
          DOUBLE PRECISION, ALLOCATABLE :: L(:,:), U(:,:)
          DOUBLE PRECISION, ALLOCATABLE :: Ls(:,:), Us(:,:)
-         DOUBLE PRECISION, ALLOCATABLE :: A(:,:)
+         DOUBLE PRECISION, ALLOCATABLE :: A(:,:), Q(:,:)
 
          ! External subroutines
-         EXTERNAL LUMM_CHEAT, DLACPY, DTRMM
+         EXTERNAL LUMM, DLACPY, DTRMM
 
          ! Parameters
          DOUBLE PRECISION  ONE, ZERO
          PARAMETER(ONE=1.0D+0, ZERO=0.0D+0)
-
+         LDQ = 2*MAX(LDL,LDU)
          ! Allocate memory
          ALLOCATE(L(LDL,N))
          ALLOCATE(U(LDU,N))
          ALLOCATE(Ls(N,N))
          ALLOCATE(Us(N,N))
          ALLOCATE(A(N,N))
+         ALLOCATE(Q(LDQ,N))
 
          ! Generate L and U as random matrices
          CALL RANDOM_NUMBER(L)
@@ -39,20 +40,14 @@
             END DO
          END DO
 
+         CALL DLACPY('Lower', N, N, L, LDL, Q, LDQ)
+         CALL DLACPY('Upper', N, N, U, LDU, Q, LDQ)
+
          CALL DLACPY('All', N, N, L, LDL, Ls, N)
          CALL DLACPY('All', N, N, U, LDU, Us, N)
 
 
-         CALL LUMM_CHEAT(N, L, LDL, 'Non-unit', U, LDU, 'Non-unit')
-
-         ! Check that U was not touched
-         DO I = 1, N
-            DO J = 1, N
-               IF (U(I,J).NE.Us(I,J)) THEN
-                  WRITE(*,*) "Inconsistency at index i = ", i, "j = ", j
-               END IF
-            END DO
-         END DO
+         CALL LUMM(N, Q, LDQ)
 
          ! Using Ls and Us compute Ls * Us using TRMM
          ! A = Ls, B = Us
@@ -63,23 +58,24 @@
                Us(I,J) = 0
             END DO
          END DO
-         CALL DTRMM('Left', 'Lower', 'No', 'Non-unit', N, N, ONE,
+         CALL DTRMM('Left', 'Lower', 'No', 'Unit', N, N, ONE,
      $      Ls, N, Us, N)
 
-         ! Compute Us - Ls and find the norm thereof
+         ! Compute Us - Q and find the norm thereof
          NORMF=0
          DO I = 1, N
             DO J = 1, N
-               TMP = Us(I,J) - L(I,J)
+               TMP = Us(I,J) - Q(I,J)
                NORMF = NORMF + TMP * TMP
             END DO
          END DO
 
-         WRITE(*,*) "||Us - L||_F = ", NORMF
+         WRITE(*,*) "||Us - Q||_F = ", NORMF
 
          DEALLOCATE(L)
          DEALLOCATE(Ls)
          DEALLOCATE(U)
          DEALLOCATE(Us)
          DEALLOCATE(A)
+         DEALLOCATE(Q)
       END SUBROUTINE

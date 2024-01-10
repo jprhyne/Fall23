@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     printf("dgeqrf dlarft my_dorg2r %s: m = %4d, n = %4d, lda = %4d, ldt = %4d\n",source, m, n, lda, ldt);
 
     // Call the test file
-    test_dorg2r_(&m,&n,&k,&lda,&ldt);
+    test_dorgkr_(&m,&n,&n,&lda,&ldt);
 
     return 0;
 

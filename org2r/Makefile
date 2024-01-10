@@ -1,36 +1,39 @@
 include make.inc
 # Group definitions
-default: overallTest.exe overallTest_optBlas.exe test_dtrmmoop.exe test_dtrmmoop_optBlas.exe driver_trmm.exe driver_dorg2r.exe driver_lumm.exe
+default: overallTest.exe overallTest_optBlas.exe test_dtrmmoop.exe test_dtrmmoop_optBlas.exe driver_trmm.exe driver_dorgkr.exe driver_lumm.exe driver_dtvt.exe
 
 clean:
 	rm *o *exe
 
 # Executable compilations
-overallTest_optBlas.exe: overallTest_opt.o overallTest.c
-	$(FC) -D USE_AOCL $(CFLAGS) overallTest_opt.o $(OPTBLAS) -o $@
+overallTest_optBlas.exe: overallTest_opt.o
+	$(FC) -D USE_AOCL $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-overallTest.exe: overallTest.o overallTest.c
-	$(FC) $(CFLAGS) overallTest.o $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+overallTest.exe: overallTest.o
+	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
 
-test_dtrmmoop.exe: test_dtrmmoop.o test_dtrmmoop.c dtrmmoop.o
-	$(FC) test_dtrmmoop.o dtrmmoop.o $(LAPACKLIB) $(BLASLIB) -o $@
+test_dtrmmoop.exe: test_dtrmmoop.o  dtrmmoop.o
+	$(FC) $^ $(LAPACKLIB) $(BLASLIB) -o $@
 
-test_dtrmmoop_optBlas.exe: test_dtrmmoop_opt.o test_dtrmmoop.c dtrmmoop.o
-	$(FC) test_dtrmmoop_opt.o dtrmmoop.o $(OPTBLAS) -o $@
+test_dtrmmoop_optBlas.exe: test_dtrmmoop_opt.o dtrmmoop.o
+	$(FC) $^ $(OPTBLAS) -o $@
 
-test_dtvt.exe: test_dtvt.o dtvt.o test_dtvt.c
-	$(FC) $(CFLAGS) test_dtvt.o dtvt.o -o $@
-
-driver_trmm.exe: driver_trmm.o testdtrmmoop.o dtrmmoop.o
-	$(FC) $(CFLAGS) driver_trmm.o testdtrmmoop.o dtrmmoop.o $(LAPACKLIB) $(BLASLIB) -o $@
-
-driver_dorg2r.exe: driver_dorg2r.o test_dorg2r.o my_dorg2r_cheat.o lumm_cheat.o dtvt_cheat.o dtrmmoop.o
+driver_dtvt.exe: driver_dtvt.o test_dtvt.o  dtrmmoop.o dtvt.o
 	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
 
-driver_lumm.exe:   driver_lumm.o test_lumm.o lumm_cheat.o
+driver_trmm.exe: driver_trmm.o testdtrmmoop.o dtrmmoop.o
+	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+
+driver_dorgkr.exe: driver_dorgkr.o test_dorgkr.o my_dorgkr.o lumm.o dtrmmoop.o dtvt.o 
+	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+
+driver_lumm.exe:   driver_lumm.o test_lumm.o lumm.o
 	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
 
 # Object file creations
+
+driver_dtvt.o: driver_dtvt.c
+	$(CC) -c $(CFLAGS) $^ -o $@
 
 driver_trmm.o: driver_trmm.c
 	$(CC) -c $(CFLAGS) $^ -o $@
@@ -38,22 +41,22 @@ driver_trmm.o: driver_trmm.c
 driver_lumm.o: driver_lumm.c
 	$(CC) -c $(CFLAGS) $^ -o $@
 
-driver_dorg2r.o: driver_dorg2r.c
+driver_dorgkr.o: driver_dorgkr.c
 	$(CC) -c $(CFLAGS) $^ -o $@
 
-test_dorg2r.o: test_dorg2r.f
+test_dtvt.o: test_dtvt.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+test_dorgkr.o: test_dorgkr.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 test_lumm.o: test_lumm.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
-my_dorg2r_cheat.o: my_dorg2r_cheat.f
+my_dorgkr.o: my_dorgkr.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
-lumm_cheat.o: lumm_cheat.f
-	$(FC) -c $(FFLAGS) $^ -o $@
-
-dtvt_cheat.o: dtvt_cheat.f
+lumm.o: lumm.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 testdtrmmoop.o: testdtrmmoop.f

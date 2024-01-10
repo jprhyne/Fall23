@@ -1,4 +1,4 @@
-      SUBROUTINE TEST_DORG2R(M, N, K, LDA, LDQ)
+      SUBROUTINE TEST_DORGKR(M, N, K, LDA, LDQ)
          ! Arguments
          INTEGER  M, N, K, LDA, LDQ
 
@@ -6,14 +6,13 @@
          DOUBLE PRECISION  NORMA, NORM_ORTH, NORM_REPRES
          INTEGER           LWORK, I, J, INFO
          ! Local arrays
-         DOUBLE PRECISION, ALLOCATABLE :: A(:,:), Q(:,:), As(:,:)
+         DOUBLE PRECISION, ALLOCATABLE :: A(:,:), Q(:,:), As(:,:), 
+     $            Qs(:,:), WORKMAT(:,:), WORK(:), T(:,:)
 
          DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: TAU
 
-         DOUBLE PRECISION, ALLOCATABLE :: WORKMAT(:,:), WORK(:), T(:,:)
-
          ! External Subroutines
-         EXTERNAL DLACPY, DGEQRF, DLARFT
+         EXTERNAL DLACPY, DGEQRF, DLARFT, DTVT
 
          ! External Functions
          DOUBLE PRECISION, EXTERNAL :: DLANGE
@@ -28,6 +27,7 @@
          ALLOCATE(A(LDA,K))
          ALLOCATE(As(LDA,K))
          ALLOCATE(Q(LDQ,N))
+         ALLOCATE(Qs(LDQ, N))
          ALLOCATE(WORK(1))
          ALLOCATE(TAU(K))
          ALLOCATE(T(N,N))
@@ -45,21 +45,33 @@
          CALL DGEQRF(M, K, A, LDA, TAU, WORK, LWORK, INFO)
          ! Copy into Q
          CALL DLACPY('All', M, K, A, LDA, Q, LDQ)
+         ! Copy into Qs
+         CALL DLACPY('All', M, K, A, LDA, Qs, LDQ)
 
          DEALLOCATE(WORK)
          ! Compute the triangular factor T
-         CALL DLARFT('Forward', 'Column', N, K, Q, LDQ, TAU, T, N)
+         CALL DLARFT('Forward', 'Column', M, N, Q, LDQ, TAU, T, N)
 
          ! Copy T into where R was inside Q
          CALL DLACPY('Upper', N, N, T, N, Q, LDQ)
 
          ! Now call MY_DORG2R
-         CALL MY_DORG2R_CHEAT(M, N, Q, LDQ)
+         CALL MY_DORGKR(M, N, Q, LDQ)
+         !ALLOCATE(WORK(M*N*M))
+         !CALL DORGQR(M, N, K, Qs, LDQ, TAU, WORK, M*N*M, INFO)
+         !DEALLOCATE(WORK)
+         !ALLOCATE(WORK(N))
+         !CALL DORG2R(M,N,K, Qs, LDQ, TAU, WORK, INFO)
+         !DEALLOCATE(WORK)
          
          ALLOCATE(WORKMAT(N,N))
-         CALL DLASET('A', N, N, ZERO, ONE, WORKMAT, N)
-         CALL DSYRK('Upper', 'Transpose', N, M, ONE, Q, LDQ, NEG_ONE,
+         CALL DLASET('A', N, N, ZERO, ZERO, WORKMAT, N)
+         CALL DSYRK('Upper', 'Transpose', N, M, ONE, Q, LDQ, ZERO,
      $         WORKMAT, N)
+
+         DO I = 1, N
+            WORKMAT(I,I) = WORKMAT(I,I) - 1
+         END DO
 
          NORM_ORTH = DLANGE('Frobenius',N,N, WORKMAT, N, WORK)
 
@@ -86,6 +98,7 @@
          DEALLOCATE(A)
          DEALLOCATE(As)
          DEALLOCATE(Q)
+         DEALLOCATE(Qs)
          DEALLOCATE(TAU)
          DEALLOCATE(T)
 

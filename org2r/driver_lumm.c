@@ -18,7 +18,6 @@ int main(int argc, char *argv[]) {
     int info, ldl, ldu, m, n, k, lwork, nb, i, j;
     // double variables
 
-    m = 30;
     n = 20;
     ldl = -1;
     ldu = -1;
@@ -30,10 +29,6 @@ int main(int argc, char *argv[]) {
         }
         if( strcmp( *(argv + i), "-ldl") == 0) {
             ldl  = atoi( *(argv + i + 1) );
-            i++;
-        }
-        if( strcmp( *(argv + i), "-m") == 0) {
-            m  = atoi( *(argv + i + 1) );
             i++;
         }
         if( strcmp( *(argv + i), "-n") == 0) {

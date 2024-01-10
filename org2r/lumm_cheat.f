@@ -25,10 +25,11 @@
          END DO
 
          DO 10 I = N, 1, -1
-            CALL DGER(N, N, ONE, L(I,I), 1, U(I,I), LDU, A(I,I), N)
+            CALL DGER(N - I + 1, N - I + 1, ONE, L(I,I), 1, U(I,I), LDU, 
+     $         A(I,I), N)
    10    CONTINUE
 
-         CALL DLACPY('All', N, N, A, N, L, LDU)
+         CALL DLACPY('All', N, N, A, N, L, LDL)
 
          DEALLOCATE(A)
 
