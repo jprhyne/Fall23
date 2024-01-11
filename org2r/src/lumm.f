@@ -1,6 +1,7 @@
-      RECURSIVE SUBROUTINE LUMM(N, Q, LDQ)
+      RECURSIVE SUBROUTINE LUMM(N, ALPHA, Q, LDQ)
          ! Scalar Arguments
          INTEGER           N, LDQ
+         DOUBLE PRECISION  ALPHA
          ! Matrix Arguments
          DOUBLE PRECISION  Q(LDQ,*)
 
@@ -50,22 +51,25 @@
          !     |---------------|
          !
          ! So, we are computing
-         ! Q = L*U = 
-         !  |--------------------------------------------------|
-         !  |L_{1,1}*U_{1,1}  L_{1,1}*U_{1,2}                  |
-         !  |L_{2,1}*U_{1,1}  L_{2,1}*U_{1,2} + L_{2,2}*U_{2,2}|
-         !  |--------------------------------------------------|
+         ! Q = ALPHA*L*U = 
+         !  |--------------------------------------------------------------------|
+         !  |ALPHA*L_{1,1}*U_{1,1}  ALPHA*L_{1,1}*U_{1,2}                        |
+         !  |ALPHA*L_{2,1}*U_{1,1}  ALPHA*L_{2,1}*U_{1,2} + ALPHA*L_{2,2}*U_{2,2}|
+         !  |--------------------------------------------------------------------|
          ! IE
-         !  Q_{1,1} = L_{1,1}*U_{1,1} (LUMM)
-         !  Q_{1,2} = L_{1,1}*U_{1,2} (TRMM)
-         !  Q_{2,1} = L_{2,1}*U_{1,1} (TRMM)
-         !  Q_{2,2} = L_{2,1}*U_{1,2} + L_{2,2}*U_{2,2} (LUMM then GEMM)
+         !  Q_{1,1} = ALPHA*L_{1,1}*U_{1,1} (LUMM)
+         !  Q_{1,2} = ALPHA*L_{1,1}*U_{1,2} (TRMM)
+         !  Q_{2,1} = ALPHA*L_{2,1}*U_{1,1} (TRMM)
+         !  Q_{2,2} = ALPHA*L_{2,1}*U_{1,2} + ALPHA*L_{2,2}*U_{2,2} (LUMM then GEMM)
          !  We compute these from bottom to top
 
          ! Base case of when N = 1
          IF (N.EQ.1) THEN
-            ! This is because we have that L is a 1x1 unit lower triangular
-            ! matrix, so Q = L*U = U, which is already stored in Q correctly
+            ! We have a 1x1 matrix so we are multiplying a unit lower triangular
+            ! matrix by an upper triangular matrix times a scalar. So we have
+            ! that
+            ! Q = ALPHA*L*U = ALPHA * U = ALPHA * Q
+            Q(1,1) = ALPHA * Q(1,1)
             RETURN
          END IF
          K = N / 2
@@ -73,24 +77,24 @@
          ! Recursive Case
          ! Compute Q_{2,2} first
          ! Q_{2,2} = L_{2,2}*U_{2,2} (LUMM)
-         CALL LUMM(N-K, Q(K + 1, K + 1), LDQ)
+         CALL LUMM(N-K, ALPHA, Q(K + 1, K + 1), LDQ)
 
          ! Q_{2,2} = L_{2,1}*U_{1,2} + Q_{2,2} (GEMM)
          CALL DGEMM('No transpose', 'No transpose', N-K, N-K, K, 
-     $            ONE, Q(K+1,1), LDQ, Q(1,K+1), LDQ, ONE, 
+     $            ALPHA, Q(K+1,1), LDQ, Q(1,K+1), LDQ, ONE, 
      $            Q(K+1, K+1), LDQ)
          
          ! Compute Q_{2,1}
          ! Q_{2,1} = L_{2,1}*U_{1,1} (TRMM)
          CALL DTRMM('Right', 'Upper', 'No-transpose', 'Non-unit',
-     $            N-K, K, ONE, Q, LDQ, Q(K+1,1), LDQ)
+     $            N-K, K, ALPHA, Q, LDQ, Q(K+1,1), LDQ)
 
          ! Compute Q_{2,1}
          CALL DTRMM('Left', 'Lower', 'No-transpose', 'Unit',
-     $            K, N-K, ONE, Q, LDQ, Q(1,K+1), LDQ)
+     $            K, N-K, ALPHA, Q, LDQ, Q(1,K+1), LDQ)
          
          ! Compute Q_{1,1}
-         CALL LUMM(K, Q, LDQ)
+         CALL LUMM(K, ALPHA, Q, LDQ)
 
          ! Done!
       END SUBROUTINE

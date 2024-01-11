@@ -52,14 +52,6 @@
 *
          IF (N.LT.2) THEN
             RETURN
-         ELSE IF (N.EQ.2) THEN
-            Q(1,2) = Q(1,1)*Q(2,1) + Q(1,2)
-         ELSE IF (N.EQ.3) THEN
-*           Manual computation of 
-*              T_{1,2} = T_{1,1}V_{1,2} + T_{1,2}V_{2,2}
-            Q(1,3) = Q(1,1)*Q(3,1) + Q(1,2)*Q(3,2) + Q(1,3)
-            Q(1,2) = Q(1,1)*Q(2,1) + Q(1,2)
-            CALL DTVT(N-1, Q(2,2), LDQ)
          ELSE
 *
 *        Recursive case

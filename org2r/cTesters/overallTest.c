@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     int info, lda, ldq, m, n, k, lwork, nb, i, j;
     int workQuery = -1;
     // double variables
-    double *A, *Q, *As, *tau, *work=NULL;
+    double *A, *Q, *As, *tau, *work, *T=NULL;
     double normA;
     double elapsed_refL, norm_orth_1, norm_repres_1;
     double zero = 0;
@@ -33,6 +33,7 @@ int main(int argc, char *argv[]) {
     char rChar = 'R';
     char tChar = 'T';
     char uChar = 'U';
+    char cChar = 'C';
 
     // Dummy value that is used when calling fortran
     // functions that take characters from C
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
 
     m = 30;
     n = 20;
-    k = n/2 + 1;
+    k = -1;
     nb = 3; // Choose a default nb value that is NOT a factor of k
     while (k % nb == 0) {
         nb++;
@@ -77,12 +78,16 @@ int main(int argc, char *argv[]) {
 
     if( lda < 0 ) lda = m;
     if( ldq < 0 ) ldq = m;
+    // While our functionality works for when k < n,we are constructing a different
+    // matrix Q, so to keep the comparisons reasonable, we will enforce k=n
+    k = n;
 
     // allocate memory for the matrices and vectors that we need to use
     A =   (double *) malloc(lda * k * sizeof(double));
     As =  (double *) malloc(lda * k * sizeof(double));
     Q =   (double *) malloc(ldq * n * sizeof(double));
     tau = (double *) malloc(k * sizeof(double));
+    T =   (double *) malloc(n * n * sizeof(double));
 
     // Print to the user what we are doing along with any arguments that are used
     char *source = SOURCE;
@@ -92,7 +97,7 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < lda * k; i++)
         A[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
     // Store random data inside Q to ensure that we do not assume anything about Q
-    for (i = 0; i < lda * n; i++)
+    for (i = 0; i < lda * k; i++)
         Q[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
 
     // Store a copy of A inside As
@@ -105,9 +110,6 @@ int main(int argc, char *argv[]) {
     // Check dgeqrf first
     dgeqrf_(&m, &k, A, &lda, tau, work, &workQuery, &info );
     lwork = work[0];
-    // dorg2r uses a workspace of size  "n" (k) so check if dgeqrf requires more
-    if (lwork < n)
-        lwork = n;
 
     // reallocate work to be of the right size
     work = (double *) realloc(work, lwork * sizeof(double));
@@ -115,15 +117,22 @@ int main(int argc, char *argv[]) {
     // Call dgeqrf first
     dgeqrf_(&m, &k, A, &lda, tau, work, &lwork, &info);
 
-    // Copy A into Q for use with dorg2r
+    // Copy A into Q for use with dorgkr
     dlacpy_(&aChar, &m, &k, A, &lda, Q, &ldq, dummy);
+
+    // Construct the T matrix associated with the householder reflectors
+    dlarft_(&fChar, &cChar, &m, &n, Q, &ldq, tau, T, &n, dummy, dummy);
+
+    // Copy the upper triangular part of T into the upper triangular part of Q (Overwriting R)
+    dlacpy_(&uChar, &n, &n, T, &n, Q, &ldq, dummy);
     
     // Take the current time for use with timing dorg2r
     gettimeofday(&tp, NULL);
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
 
-    // Call dorg2r.
-    dorg2r_(&m, &n, &k, Q, &ldq, tau, work, &info);
+    // Call my_dorgkr
+    my_dorgkr_(&m, &k, Q, &ldq);
+    //dorg2r_(&m, &n, &k, Q, &ldq, tau, work, &info);
 
     // Determine how much time has taken
     gettimeofday(&tp, NULL);
@@ -131,14 +140,14 @@ int main(int argc, char *argv[]) {
 
     // Compute the error information
     // reallocate work to be of the right size for testing orthogonality of Q.
-    work = (double *)realloc(work, n * n * sizeof(double));
+    work = (double *)realloc(work, k * k * sizeof(double));
 
     // Set work to be I
-    dlaset_(&aChar, &n, &n, &zero, &one, work, &n, dummy);
+    dlaset_(&aChar, &k, &k, &zero, &one, work, &k, dummy);
     // Compute work = Q**T * Q - I
-    dsyrk_(&uChar, &tChar, &n, &m, &one, Q, &ldq, &negOne, work, &n);
+    dsyrk_(&uChar, &tChar, &k, &m, &one, Q, &ldq, &negOne, work, &k);
     // Compute the norm of work
-    norm_orth_1 = dlange_(&fChar, &n, &n, work, &n, NULL, dummy);
+    norm_orth_1 = dlange_(&fChar, &k, &k, work, &k, NULL, dummy);
 
     // reallocate work to be able to hold Q
     work = (double *)realloc(work, m * k * sizeof(double));
@@ -158,11 +167,28 @@ int main(int argc, char *argv[]) {
     // Compute ||A - Q*R||_F / ||A||_F
     norm_repres_1 /= normA;
 
-    printf("time = %f repres = %5.1e ortho = %5.1e\n", elapsed_refL, norm_repres_1, norm_orth_1);
+    printf("my_dorgkr: time = %f repres = %5.1e ortho = %5.1e\n", elapsed_refL, norm_repres_1, norm_orth_1);
+
+    // Now do the regular dorg2r to compare time.
+    // Since we are not testing the accuracy of this method, we only need to call dorg2r correctly
+    work = (double *) realloc(work, n * sizeof(double));
+    // Take the current time for use with timing dorg2r
+    gettimeofday(&tp, NULL);
+    elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+
+    // Call dorg2r
+    dorg2r_(&m, &n, &n, As, &lda, tau, work, &info);
+
+    // Determine how much time has taken
+    gettimeofday(&tp, NULL);
+    elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    printf("dorg2r: time = %f\n", elapsed_refL);
+    //printf("dorg2r: time = %f repres = %5.1e ortho = %5.1e\n", elapsed_refL, norm_repres_1, norm_orth_1);
     // Free memory before terminating 
     free(Q);
     free(As);
     free(A);
     free(tau);
     free(work);
+    free(T);
 }

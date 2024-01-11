@@ -22,7 +22,12 @@
          INTEGER           NEG_ONE
          PARAMETER(ONE=1.0D+0, ZERO=0, NEG_ONE=-1.0D+0)
 
-
+         IF(LDQ.LT.M.OR.LDA.LT.M) THEN
+            WRITE(*,*) "Incorrect LDA or LDQ value"
+            RETURN
+         ELSE IF(K.GT.N) THEN
+            WRITE(*,*) "Incorrect K value"
+         END IF
 
          ALLOCATE(A(LDA,K))
          ALLOCATE(As(LDA,K))
