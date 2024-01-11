@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
 
     if( lda < 0 ) lda = m;
     if( ldq < 0 ) ldq = m;
+    if( k > n) k = n;
 
     if (!errorsOnly && !timesOnly) {
         printf("dgeqrf dgorgqr LAPACK | ");
@@ -119,9 +120,9 @@ int main(int argc, char **argv) {
 
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, Q, ldq, tau, work, lwork );
     // Directly calling the fortran function dorgqr
-    dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    //dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
     // Directly calling my fortran function my_dorgqr
-    //my_dorgqr_(&m, &n, &k, &nb, Q, &ldq, tau, work, &lwork, &info);
+    my_dorgqr_(&m, &n, &k, &nb, Q, &ldq, tau, work, &lwork, &info);
     //my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
 
     gettimeofday(&tp, NULL);
@@ -135,6 +136,7 @@ int main(int argc, char **argv) {
 
     work  = (double *) malloc(n * n * sizeof(double));
     info  = LAPACKE_dlaset( LAPACK_COL_MAJOR, 'A', n, n, (0e+00), (1e+00), work, n );
+    //bl1_dsyrk_blas(CblasColMajor, CblasUpper, CblasTrans, n, m, 1.0e+00, Q, ldq, -1.0e+00, work, n);
     cblas_dsyrk( CblasColMajor, CblasUpper, CblasTrans, n, m, 1.0e+00, Q, ldq, -1.0e+00, work, n );
     norm_orth_1 = LAPACKE_dlange_work( LAPACK_COL_MAJOR, 'F', n, n, work, n, NULL );
     free( work );

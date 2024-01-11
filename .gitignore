@@ -60,6 +60,8 @@ results.txt
 my.txt
 mkl.txt
 ref.txt
+# Exclude personal todo file
+todo.md
 
 # Exclude tex auxilary files
 *aux
