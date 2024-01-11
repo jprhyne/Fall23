@@ -26,7 +26,7 @@
 
          ALLOCATE(A(LDA,K))
          ALLOCATE(As(LDA,K))
-         ALLOCATE(Q(LDQ,N))
+         ALLOCATE(Q(LDQ,K))
          ALLOCATE(Qs(LDQ, N))
          ALLOCATE(WORK(1))
          ALLOCATE(TAU(K))
@@ -56,7 +56,7 @@
          CALL DLACPY('Upper', N, N, T, N, Q, LDQ)
 
          ! Now call MY_DORG2R
-         CALL MY_DORGKR(M, N, Q, LDQ)
+         CALL MY_DORGKR(M, K, Q, LDQ)
          !ALLOCATE(WORK(M*N*M))
          !CALL DORGQR(M, N, K, Qs, LDQ, TAU, WORK, M*N*M, INFO)
          !DEALLOCATE(WORK)
@@ -64,16 +64,16 @@
          !CALL DORG2R(M,N,K, Qs, LDQ, TAU, WORK, INFO)
          !DEALLOCATE(WORK)
          
-         ALLOCATE(WORKMAT(N,N))
-         CALL DLASET('A', N, N, ZERO, ZERO, WORKMAT, N)
-         CALL DSYRK('Upper', 'Transpose', N, M, ONE, Q, LDQ, ZERO,
-     $         WORKMAT, N)
+         ALLOCATE(WORKMAT(K,K))
+         CALL DLASET('A', K,K, ZERO, ZERO, WORKMAT, K)
+         CALL DSYRK('Upper', 'Transpose', K, M, ONE, Q, LDQ, ZERO,
+     $         WORKMAT, K)
 
-         DO I = 1, N
+         DO I = 1, K
             WORKMAT(I,I) = WORKMAT(I,I) - 1
          END DO
 
-         NORM_ORTH = DLANGE('Frobenius',N,N, WORKMAT, N, WORK)
+         NORM_ORTH = DLANGE('Frobenius', K, K, WORKMAT, K, WORK)
 
          DEALLOCATE(WORKMAT)
          ALLOCATE(WORKMAT(M,K))
