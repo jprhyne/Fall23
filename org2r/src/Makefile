@@ -1,12 +1,15 @@
 include ../make.inc
 
 # Groups
-all: my_dorgkr.o lumm.o dtrmmoop.o dtvt.o
+all: my_dlarft.o my_dorgkr.o lumm.o dtrmmoop.o dtvt.o
 
 clean:
 	rm *.o
 
 my_dorgkr.o: my_dorgkr.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+my_dlarft.o: my_dlarft.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 lumm.o: lumm.f

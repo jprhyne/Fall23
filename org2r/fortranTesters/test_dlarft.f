@@ -1,6 +1,6 @@
-      SUBROUTINE TEST_DORGKR(M, N, K, LDA, LDQ)
+      SUBROUTINE TEST_DLARFT(M, N)
          ! Arguments
-         INTEGER  M, N, K, LDA, LDQ
+         INTEGER  M, N
 
          ! Local variables
          DOUBLE PRECISION  NORMA, NORM_ORTH, NORM_REPRES
@@ -12,7 +12,7 @@
          DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: TAU
 
          ! External Subroutines
-         EXTERNAL DLACPY, DGEQRF, DLARFT, DTVT
+         EXTERNAL DLACPY, DGEQRF, DLARFT, DTVT, MY_DLARFT
 
          ! External Functions
          DOUBLE PRECISION, EXTERNAL :: DLANGE
@@ -22,77 +22,69 @@
          INTEGER           NEG_ONE
          PARAMETER(ONE=1.0D+0, ZERO=0, NEG_ONE=-1.0D+0)
 
-         IF(LDQ.LT.M.OR.LDA.LT.M) THEN
-            WRITE(*,*) "Incorrect LDA or LDQ value"
-            RETURN
-         ELSE IF(K.GT.N) THEN
-            WRITE(*,*) "Incorrect K value"
-         END IF
-
-         ALLOCATE(A(LDA,K))
-         ALLOCATE(As(LDA,K))
-         ALLOCATE(Q(LDQ,K))
-         ALLOCATE(Qs(LDQ, N))
+         ALLOCATE(A(M,N))
+         ALLOCATE(As(M,N))
+         ALLOCATE(Q(M,N))
+         ALLOCATE(Qs(M, N))
          ALLOCATE(WORK(1))
-         ALLOCATE(TAU(K))
-         ALLOCATE(T(K,K))
+         ALLOCATE(TAU(N))
+         ALLOCATE(T(N,N))
          ! Generate a random A
          CALL RANDOM_NUMBER(A)
 
-         CALL DLACPY('All', M, K, A, LDA, As, LDA)
-         NORMA = DLANGE('Frobenius', M, K, A, LDA, WORK)
+         CALL DLACPY('All', M, N, A, M, As, M)
+         NORMA = DLANGE('Frobenius', M, N, A, M, WORK)
 
-         CALL DGEQRF(M, K, A, LDA, TAU, WORK, NEG_ONE, INFO)
+         CALL DGEQRF(M, N, A, M, TAU, WORK, NEG_ONE, INFO)
          LWORK = WORK(1)
          DEALLOCATE(WORK)
          ALLOCATE(WORK(LWORK))
 
-         CALL DGEQRF(M, K, A, LDA, TAU, WORK, LWORK, INFO)
+         CALL DGEQRF(M, N, A, M, TAU, WORK, LWORK, INFO)
          ! Copy into Q
-         CALL DLACPY('All', M, K, A, LDA, Q, LDQ)
+         CALL DLACPY('All', M, N, A, M, Q, M)
          ! Copy into Qs
-         CALL DLACPY('All', M, K, A, LDA, Qs, LDQ)
+         CALL DLACPY('All', M, N, A, M, Qs, M)
 
          DEALLOCATE(WORK)
          ! Compute the triangular factor T
-         !CALL DLARFT('Forward', 'Column', M, K, Q, LDQ, TAU, Q, LDQ)
-         CALL MY_DLARFT(M, K, Q, LDQ, TAU, Q, LDQ)
+         CALL MY_DLARFT(M, N, Q, M, TAU, Q, M)
 
          ! Copy T into where R was inside Q
-         !CALL DLACPY('Upper', K, K, T, K, Q, LDQ)
+         !CALL DLACPY('Upper', N, N, T, N, Q, M)
 
          ! Now call MY_DORG2R
-         CALL MY_DORGKR(M, K, Q, LDQ)
+         CALL MY_DORGKR(M, N, Q, M)
          !ALLOCATE(WORK(M*N*M))
-         !CALL DORGQR(M, N, K, Qs, LDQ, TAU, WORK, M*N*M, INFO)
+         !CALL DORGQR(M, N, N, Qs, M, TAU, WORK, M*N*M, INFO)
          !DEALLOCATE(WORK)
          !ALLOCATE(WORK(N))
-         !CALL DORG2R(M,N,K, Qs, LDQ, TAU, WORK, INFO)
+         !CALL DORG2R(M,N,N, Qs, M, TAU, WORK, INFO)
          !DEALLOCATE(WORK)
          
-         ALLOCATE(WORKMAT(K,K))
-         CALL DLASET('A', K,K, ZERO, ZERO, WORKMAT, K)
-         CALL DSYRK('Upper', 'Transpose', K, M, ONE, Q, LDQ, ZERO,
-     $         WORKMAT, K)
+         ALLOCATE(WORKMAT(N,N))
+         CALL DLASET('A', N,N, ZERO, ZERO, WORKMAT, N)
+         CALL DSYRK('Upper', 'Transpose', N, M, ONE, Q, M, ZERO,
+     $         WORKMAT, N)
 
-         DO I = 1, K
+         DO I = 1, N
             WORKMAT(I,I) = WORKMAT(I,I) - 1
          END DO
 
-         NORM_ORTH = DLANGE('Frobenius', K, K, WORKMAT, K, WORK)
+         NORM_ORTH = DLANGE('Frobenius', N, N, WORKMAT, N, WORK)
 
          DEALLOCATE(WORKMAT)
-         ALLOCATE(WORKMAT(M,K))
-         CALL DLACPY('All', M, K, Q, LDQ, WORKMAT, M)
+         ALLOCATE(WORKMAT(M,N))
+         CALL DLACPY('All', M, N, Q, M, WORKMAT, M)
          CALL DTRMM('Right', 'Upper', 'No-transpose', 'non-unit',
-     $      M, K, ONE, A, LDA, WORKMAT, M)
+     $      M, N, ONE, A, M, WORKMAT, M)
 
          DO I = 1, M
-            DO J = 1, K
+            DO J = 1, N
                WORKMAT(I,J) = WORKMAT(I,J) - As(I,J)
             END DO
          END DO
-         NORM_REPRES = DLANGE('Frobenius', M, K, WORKMAT,
+         NORM_REPRES = DLANGE('Frobenius', M, N, WORKMAT,
      $      M, WORK)
          NORM_REPRES = NORM_REPRES / NORMA
 

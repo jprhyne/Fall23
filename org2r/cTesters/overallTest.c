@@ -78,14 +78,15 @@ int main(int argc, char *argv[]) {
 
     if( lda < 0 ) lda = m;
     if( ldq < 0 ) ldq = m;
+    if( k < 0) k = n;
     // While our functionality works for when k < n,we are constructing a different
     // matrix Q, so to keep the comparisons reasonable, we will enforce k=n
-    k = n;
+    //k = n;
 
     // allocate memory for the matrices and vectors that we need to use
     A =   (double *) malloc(lda * k * sizeof(double));
     As =  (double *) malloc(lda * k * sizeof(double));
-    Q =   (double *) malloc(ldq * n * sizeof(double));
+    Q =   (double *) malloc(ldq * k * sizeof(double));
     tau = (double *) malloc(k * sizeof(double));
     T =   (double *) malloc(n * n * sizeof(double));
 
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < lda * k; i++)
         A[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
     // Store random data inside Q to ensure that we do not assume anything about Q
-    for (i = 0; i < lda * k; i++)
+    for (i = 0; i < ldq * k; i++)
         Q[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
 
     // Store a copy of A inside As
@@ -120,15 +121,16 @@ int main(int argc, char *argv[]) {
     // Copy A into Q for use with dorgkr
     dlacpy_(&aChar, &m, &k, A, &lda, Q, &ldq, dummy);
 
-    // Construct the T matrix associated with the householder reflectors
-    dlarft_(&fChar, &cChar, &m, &n, Q, &ldq, tau, T, &n, dummy, dummy);
-
-    // Copy the upper triangular part of T into the upper triangular part of Q (Overwriting R)
-    dlacpy_(&uChar, &n, &n, T, &n, Q, &ldq, dummy);
-    
     // Take the current time for use with timing dorg2r
     gettimeofday(&tp, NULL);
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+
+    // Construct the T matrix associated with the householder reflectors
+    my_dlarft_(&m, &k, Q, &ldq, tau, Q, &ldq);
+    //dlarft_(&fChar, &cChar, &m, &k, Q, &ldq, tau, Q, &ldq, dummy, dummy);
+
+    // Copy the upper triangular part of T into the upper triangular part of Q (Overwriting R)
+    //dlacpy_(&uChar, &n, &n, T, &n, Q, &ldq, dummy);
 
     // Call my_dorgkr
     my_dorgkr_(&m, &k, Q, &ldq);
@@ -177,7 +179,7 @@ int main(int argc, char *argv[]) {
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
 
     // Call dorg2r
-    dorg2r_(&m, &n, &n, As, &lda, tau, work, &info);
+    dorg2r_(&m, &k, &k, As, &lda, tau, work, &info);
 
     // Determine how much time has taken
     gettimeofday(&tp, NULL);

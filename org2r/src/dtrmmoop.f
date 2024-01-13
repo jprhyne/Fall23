@@ -31,6 +31,10 @@
 *
          DOUBLE PRECISION  DDOT
          EXTERNAL          DDOT
+*
+*        .. External Subroutines ..
+*
+         EXTERNAL          DAXPY
 *        We break down each matrix into the following form
 *
 *        |-------|   |-------|   |-------|   |-------|**T
@@ -78,15 +82,19 @@
 *           why, but this is a workaround. (maybe some gdb issue. will toy
 *           around with removing later as a last cleanup step).
 *
-            IF (N.EQ.1) THEN
-               C(1,1) = C(1,1) + A(1,1)*T(1,1)
-            ELSE
-               DO 10 J = 1, N
-                  C(1,J) = C(1,J) + A(J,1)*T(1,1)
-   10          CONTINUE
-            END IF
+            ! CALL DAXPY(N, T(1,1), A(1,1), 1, C(1,1), LDC)
+            CALL DAXPY(N, T(1,1), A(1,1), 1, C(1,1), LDC)
+            !IF (N.EQ.1) THEN
+            !   C(1,1) = C(1,1) + A(1,1)*T(1,1)
+            !ELSE
+            !   DO 10 J = 1, N
+            !      C(1,J) = C(1,J) + A(J,1)*T(1,1)
+*   10          CONTINUE
+            !END IF
             RETURN
          ELSE IF (N.EQ.1) THEN
+            ! Write quick implementation of dtrmvoop (should be similar to this
+            ! case)
 *           In this case, we have a C as a column vector and we need to compute
 *           a modified matrix vector product (ie a modified form of dtrmv) But
 *           also out of place.

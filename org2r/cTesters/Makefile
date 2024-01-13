@@ -9,10 +9,10 @@ clean:
 objectFiles:
 	$(MAKE) -C ../src all
 
-overallTest_optBlas.exe: overallTest_opt.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtvt.o ../src/dtrmmoop.o
+overallTest_optBlas.exe: overallTest_opt.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtvt.o ../src/dtrmmoop.o ../src/my_dlarft.o
 	$(FC) -D USE_AOCL $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-overallTest.exe: overallTest.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtvt.o ../src/dtrmmoop.o
+overallTest.exe: overallTest.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtvt.o ../src/dtrmmoop.o ../src/my_dlarft.o
 	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
 
 test_dtrmmoop.exe: test_dtrmmoop.o  ../src/dtrmmoop.o
