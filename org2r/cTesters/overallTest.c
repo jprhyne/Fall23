@@ -173,13 +173,19 @@ int main(int argc, char *argv[]) {
 
     // Now do the regular dorg2r to compare time.
     // Since we are not testing the accuracy of this method, we only need to call dorg2r correctly
-    work = (double *) realloc(work, n * sizeof(double));
+    work = (double *) realloc(work, 1 * sizeof(double));
+
+    lwork = -1;
+    dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
+    lwork = work[0];
+    work = (double *) realloc(work, lwork * sizeof(double));
     // Take the current time for use with timing dorg2r
     gettimeofday(&tp, NULL);
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
 
     // Call dorg2r
-    dorg2r_(&m, &k, &k, As, &lda, tau, work, &info);
+    dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
+    //dorg2r_(&m, &k, &k, As, &lda, tau, work, &info);
 
     // Determine how much time has taken
     gettimeofday(&tp, NULL);

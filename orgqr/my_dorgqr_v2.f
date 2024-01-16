@@ -124,7 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, NB, A, LDA, TAU, WORK, LWORK, INFO)
+      SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
       IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
@@ -164,7 +164,7 @@
 *     Test the input arguments
 *
       INFO = 0
-*      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
+      NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
 *     Reworking the LWORK computation since we only need WORK to be of
 *     size NB**2 to hold T. If N is 0, then we don't need any work array
 *     due to us doing a quick return. If it's less than 0, then we are
@@ -181,7 +181,7 @@
          INFO = -3
       ELSE IF( LDA.LT.MAX( 1, M ) ) THEN
          INFO = -5
-      ELSE IF( LWORK.LT.MAX( 1, N ) .AND. .NOT.LQUERY ) THEN
+      ELSE IF( LWORK.LT.MAX( 1, NB ) .AND. .NOT.LQUERY ) THEN
          INFO = -8
       END IF
       IF( INFO.NE.0 ) THEN
@@ -211,7 +211,7 @@
 *
 *           Determine if workspace is large enough for blocked code.
 *
-            LDWORK = N
+            LDWORK = NB
             IWS = LDWORK*NB
             IF( LWORK.LT.IWS ) THEN
 *

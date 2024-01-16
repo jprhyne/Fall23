@@ -7,20 +7,45 @@
 # Next, we run make to compile our 
 #make
 
-# Now, we will run test.exe for varying m,n,k files only grabbing the GFlop/s 
-for (( m=50; m<=850; m+=100 ))
+
+# Now, we will run test.exe for varying m,n,k files only grabbing the timing
+echo "Tall and skinny matrices"
+for (( m=700000; m<=1000000; m+=100000 ))
 do
-    for (( n=50; n<=m; n+=100 ))
+    for (( n=10; n<=200; n+=10 ))
     do
-        for (( k=10; k<=n; k+=100 ))
+        for (( k=10; k<=n; k+=10 ))
         do
             echo "m=$m n=$n k=$k"
-            echo "Reference dorgqr"
-            ./test.exe -m $m -n $n -k $k -t
-
-            echo "my_dorgqr"
-            ./test_optBlas.exe -m $m -n $n -k $k -t
-            sleep 1
+            echo "Reference dorgqr ran 30 times"
+            for (( l=1; l<=30; l+=1 ))
+            do 
+                ./timeDorgqr.exe -m $m -n $n -k $k -t
+            done
+            echo "my_dorgqr ran 30 times"
+            for (( l=1; l<=30; l+=1 ))
+            do
+                ./test_v1_opt.exe -m $m -n $n -k $k -t
+            done 
         done
+    done
+done
+echo "Square matrices"
+for (( m=500; m<=5000; m+=500 ))
+do
+    n=$m
+    for (( k=50; k<=n; k+=100 ))
+    do
+        echo "m=$m n=$n k=$k"
+        echo "Reference dorgqr ran 30 times"
+        for (( l=1; l<=30; l+=1 ))
+        do 
+            ./timeDorgqr.exe -m $m -n $n -k $k -t
+        done
+        echo "my_dorgqr ran 30 times"
+        for (( l=1; l<=30; l+=1 ))
+        do
+            ./test_v3.exe -m $m -n $n -k $k -t
+        done 
     done
 done

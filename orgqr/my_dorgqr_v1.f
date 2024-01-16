@@ -315,11 +315,11 @@
 *        Set rows 1:i-1 of current block to zero
 *        NOTE: This is going to be C1 in the following loop
 *
-*         DO 45 J = I, I + IB - 1
-*            DO 35 L = 1, I - 1
-*               A( L, J ) = ZERO
-*   35       CONTINUE
-*   45    CONTINUE
+         DO 45 J = I, I + IB - 1
+            DO 35 L = 1, I - 1
+               A( L, J ) = ZERO
+   35       CONTINUE
+   45    CONTINUE
          DO 50 I = KI + 1, 1, -NB
             IB = NB
 *

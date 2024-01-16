@@ -1,6 +1,3 @@
-1. Remove workspace completely (excepting for T)
-2. Use the fact that C1 is 0 inside of the for loop for dlarfb (also for final cleanup)
-
-
-# Version 2 stuff
-1. write efficient dorg2r
+1. Run time.sh calling all different versions of my_dorgqr
+2. Write a python parser for the timing files (vxTimes.txt)
+3. Plot the average of the 30 runs for each iteration

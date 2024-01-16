@@ -124,7 +124,8 @@ int main(int argc, char **argv) {
     dgeqrf_(&m, &k, A, &lda, tau, work, &negOne, &info);
     //LAPACKE_dgeqrf_work( LAPACK_COL_MAJOR, m, k, A, lda, tau, work, -1 ); 
     lwork = ((int) work[0]);
-    my_dorgqr_(&m, &n, &k, A, &lda, tau, work, &negOne, &info);
+    //my_dorgqr_(&m, &n, &k, A, &lda, tau, work, &negOne, &info);
+    dorgqr_(&m, &n, &k, A, &lda, tau, work, &negOne, &info);
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, A, lda, tau, work, -1 );
     if (lwork < ((int) work[0])) lwork = ((int) work[0]); 
     free( work );
@@ -139,9 +140,8 @@ int main(int argc, char **argv) {
 
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, Q, ldq, tau, work, lwork );
     // Directly calling the fortran function dorgqr
-    //dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
     // Directly calling my fortran function my_dorgqr
-    my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
     //my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
 
     gettimeofday(&tp, NULL);

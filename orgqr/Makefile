@@ -1,6 +1,6 @@
 include make.inc
 # Group definitions
-default: test.exe driver test_optBlas.exe timeSVD.exe
+default: test.exe driver test_optBlas.exe timeSVD.exe test_v1.exe test_v1_opt.exe test_v2.exe timeDorgqr.exe test_v3.exe
 
 testDorgqr: test_mklDorgqr.exe test_refDorgqr.exe
 
@@ -16,26 +16,32 @@ timeSVD_opt.exe: timeSVD.o my_dorgqr_v1.o my_dgesvd.o timeSVD.c
 timeSVD.exe: timeSVD.o my_dorgqr.o my_dgesvd.o dgesvd.o timeSVD.c
 	$(FC) $(CFLAGS) timeSVD.o my_dorgqr.o my_dgesvd.o dgesvd.o $(LAPACKLIB) $(BLASLIB) $(LAPACKELIB) -o $@
 
-test_optBlas.exe: my_dorgqr.o test.o test.c dorgqr.o 
-	$(FC) $(CFLAGS) my_dorgqr.o test.o $(LAPACKELIB) $(OPTBLAS) -o $@
+test_optBlas.exe: my_dorgqr.o test.o
+	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(OPTBLAS) -o $@
 
-test_refDorgqr.exe: test.o dorgqr.o test.c
-	$(FC) $(CFLAGS) test.o $(OPTBLAS) dorgqr.o -o $@
-
-test_mklDorgqr.exe: test.o test.c
+test_refDorgqr.exe: test.o
 	$(FC) $(CFLAGS) test.o $(OPTBLAS) -o $@
 
-test_v2.exe: test.o my_dorgqr_v2.o test.c
-	$(FC) $(CFLAGS) test.o my_dorgqr_v2.o $(OPTBLAS) -o $@
+test_mklDorgqr.exe: test.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-test_v1_opt.exe: test.o my_dorgqr_v1.o test.c
-	$(FC) $(CFLAGS) test.o my_dorgqr_v1.o $(OPTBLAS) -o $@
+test_v2.exe: test.o my_dorgqr_v2.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-test_v1.exe: test.o my_dorgqr_v1.o test.c
-	$(FC) $(CFLAGS) test.o my_dorgqr_v1.o $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+test_v3.exe: test.o my_dorgqr_v3.o ../org2r/src/my_dorgkr.o ../org2r/src/lumm.o ../org2r/src/dtvt.o ../org2r/src/dtrmmoop.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-test.exe: my_dorgqr.o test.o test.c
-	$(FC) $(CFLAGS) my_dorgqr.o test.o $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+test_v1_opt.exe: test.o my_dorgqr_v1.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
+
+test_v1.exe: test.o my_dorgqr_v1.o
+	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+
+test.exe: my_dorgqr.o test.o
+	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+
+timeDorgqr.exe: timeDorgqr.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver: driver.c
 	$(CC) $(CFLAGS) $^ -o $@
@@ -47,6 +53,9 @@ timeSVD.o: timeSVD.c
 my_dgesvd.o: my_dgesvd.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
+timeDorgqr.o: timeDorgqr.c
+	$(CC) -c $(CFLAGS) $^ -o $@
+
 dgesvd.o: dgesvd.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
@@ -57,6 +66,9 @@ my_dorgqr_v1.o: my_dorgqr_v1.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 my_dorgqr_v2.o: my_dorgqr_v2.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+my_dorgqr_v3.o: my_dorgqr_v3.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 test.o: test.c 
