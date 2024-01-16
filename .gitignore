@@ -62,6 +62,8 @@ mkl.txt
 ref.txt
 # Exclude personal todo file
 todo.md
+tex/*pdf
+tex/*thm
 
 # Exclude tex auxilary files
 *aux
