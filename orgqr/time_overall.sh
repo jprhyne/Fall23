@@ -20,6 +20,11 @@ do
         do
             ./timeDorgqr.exe -m $m -n $n -k $n -t
         done
+        echo "my_dorgqr_v0 ran 15 times"
+        for (( l=1; l<=15; l+=1 ))
+        do
+            ./test_v0.exe -m $m -n $n -k $n -t
+        done
         echo "my_dorgqr_v1 ran 15 times"
         for (( l=1; l<=15; l+=1 ))
         do
@@ -34,6 +39,11 @@ do
         for (( l=1; l<=15; l+=1 ))
         do
             ./test_v3.exe -m $m -n $n -k $n -t
+        done
+        echo "my_dorgqr_v4 ran 15 times"
+        for (( l=1; l<=15; l+=1 ))
+        do
+            ./test_v4.exe -m $m -n $n -k $n -t
         done
     done
 done
@@ -47,22 +57,32 @@ do
         echo "AOCL ran 15 times"
         for (( l=1; l<=15; l+=1 ))
         do
-            ./timeDorgqr.exe -m $m -n $n -k $n -t
+            ./timeDorgqr.exe -m $m -n $n -k $k -t
+        done
+        echo "my_dorgqr_v0 ran 15 times"
+        for (( l=1; l<=15; l+=1 ))
+        do
+            ./test_v0.exe -m $m -n $n -k $k -t
         done
         echo "my_dorgqr_v1 ran 15 times"
         for (( l=1; l<=15; l+=1 ))
         do
-            ./test_v1_opt.exe -m $m -n $n -k $n -t
+            ./test_v1_opt.exe -m $m -n $n -k $k -t
         done
         echo "my_dorgqr_v2 ran 15 times"
         for (( l=1; l<=15; l+=1 ))
         do
-            ./test_v2.exe -m $m -n $n -k $n -t
+            ./test_v2.exe -m $m -n $n -k $k -t
         done
         echo "my_dorgqr_v3 ran 15 times"
         for (( l=1; l<=15; l+=1 ))
         do
-            ./test_v3.exe -m $m -n $n -k $n -t
+            ./test_v3.exe -m $m -n $n -k $k -t
+        done
+        echo "my_dorgqr_v4 ran 15 times"
+        for (( l=1; l<=15; l+=1 ))
+        do
+            ./test_v4.exe -m $m -n $n -k $k -t
         done
     done
 done

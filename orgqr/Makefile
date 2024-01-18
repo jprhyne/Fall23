@@ -1,6 +1,6 @@
 include make.inc
 # Group definitions
-default: test.exe driver test_optBlas.exe timeSVD.exe test_v1_opt.exe test_v2.exe test_v3.exe
+default: test.exe driver test_optBlas.exe timeSVD.exe test_v1_opt.exe test_v2.exe test_v3.exe test_v0.exe test_v4.exe
 
 testDorgqr: test_mklDorgqr.exe test_refDorgqr.exe
 
@@ -25,10 +25,16 @@ test_refDorgqr.exe: test.o
 test_mklDorgqr.exe: test.o
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
+test_v0.exe: test_my_dorgqr.o my_dorgqr_v0.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
+
 test_v2.exe: test_my_dorgqr.o my_dorgqr_v2.o
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 test_v3.exe: test_my_dorgqr.o my_dorgqr_v3.o ../org2r/src/my_dorgkr.o ../org2r/src/lumm.o ../org2r/src/dtvt.o ../org2r/src/dtrmmoop.o ../org2r/src/my_dlarft.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
+
+test_v4.exe: test_my_dorgqr.o my_dorgqr_v4.o ../org2r/src/my_dorgkr.o ../org2r/src/lumm.o ../org2r/src/dtvt.o ../org2r/src/dtrmmoop.o ../org2r/src/my_dlarft.o
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 test_v1_opt.exe: test_my_dorgqr.o my_dorgqr_v1.o
@@ -65,6 +71,9 @@ dgesvd.o: dgesvd.f
 my_dorgqr.o: my_dorgqr.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
+my_dorgqr_v0.o: my_dorgqr_v0.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
 my_dorgqr_v1.o: my_dorgqr_v1.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
@@ -72,6 +81,9 @@ my_dorgqr_v2.o: my_dorgqr_v2.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 my_dorgqr_v3.o: my_dorgqr_v3.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+my_dorgqr_v4.o: my_dorgqr_v4.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 test.o: test.c 
