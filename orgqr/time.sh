@@ -10,11 +10,11 @@
 
 # Now, we will run test.exe for varying m,n,k files only grabbing the timing
 echo "Tall and skinny matrices"
-for (( m=700000; m<=1000000; m+=100000 ))
+for (( m=200000; m<=1000000; m+=200000 ))
 do
-    for (( n=10; n<=200; n+=10 ))
+    for (( n=50; n<=200; n+=50 ))
     do
-        for (( k=10; k<=n; k+=10 ))
+        for (( k=50; k<=n; k+=50 ))
         do
             echo "m=$m n=$n k=$k"
             echo "Reference dorgqr ran 30 times"
@@ -25,16 +25,16 @@ do
             echo "my_dorgqr ran 30 times"
             for (( l=1; l<=30; l+=1 ))
             do
-                ./test_v1_opt.exe -m $m -n $n -k $k -t
+                ./test_v3.exe -m $m -n $n -k $k -t
             done 
         done
     done
 done
 echo "Square matrices"
-for (( m=500; m<=5000; m+=500 ))
+for (( m=1000; m<=5000; m+=1000 ))
 do
     n=$m
-    for (( k=50; k<=n; k+=100 ))
+    for (( k=100; k<=n; k+=100 ))
     do
         echo "m=$m n=$n k=$k"
         echo "Reference dorgqr ran 30 times"

@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
     } else if (errorsOnly && !timesOnly) {
         printf("%10.10e %10.10e", norm_repres_1, norm_orth_1);
     } else {
-        printf("%f", elapsed_refL);
+        printf("%10.10e:%10.10e", elapsed_refL, perform_refL);
     }
 
     printf("\n");

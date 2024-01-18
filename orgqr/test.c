@@ -128,6 +128,7 @@ int main(int argc, char **argv) {
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, A, lda, tau, work, -1 );
     if (lwork < ((int) work[0])) lwork = ((int) work[0]); 
     free( work );
+    if (lwork < n) lwork = n;
     work = (double *) malloc( lwork * sizeof(double));
 
     dgeqrf_(&m, &k, A, &lda, tau, work, &lwork, &info);
@@ -139,9 +140,12 @@ int main(int argc, char **argv) {
 
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, Q, ldq, tau, work, lwork );
     // Directly calling the fortran function dorgqr
-    //dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
     // Directly calling my fortran function my_dorgqr
+#ifdef USE_MY_DORGQR
     my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+#else
+    dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+#endif
     //my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
 
     gettimeofday(&tp, NULL);
@@ -182,7 +186,7 @@ int main(int argc, char **argv) {
     } else if (errorsOnly && !timesOnly) {
         printf("%10.10e %10.10e", norm_repres_1, norm_orth_1);
     } else {
-        printf("%f", elapsed_refL);
+        printf("%10.10e:%10.10e", elapsed_refL, perform_refL);
     }
 
     printf("\n");

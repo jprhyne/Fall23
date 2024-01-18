@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
         for (int n = 50; n <= m; n+=100) {
             for (int k = 10; k <= n; k+=100) {
                 for (int nb = 3; nb <= 32 && nb < k; nb+=10) {
-                    sprintf(command, "./test.exe -m %d -n %d -k %d -nb %d -e", m,n,k,nb);
+                    sprintf(command, "./test_v3.exe -m %d -n %d -k %d -nb %d -e", m,n,k,nb);
                     system(command);
                 }
             }

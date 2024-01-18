@@ -30,7 +30,6 @@
          !     |0       T_{2,2}|    |0    T_2|
          !     |---------------|    |--------|
 
-         !For now, we use DLARFT to construct T_{1,1} and T_{2,2}
          ! T is the triangular factor attained from block reflectors. 
          ! To motivate the structure, consider the product
          !
@@ -53,6 +52,9 @@
          ! Based on the algorithm of Elmroth and Gustavson,
          ! IBM J. Res. Develop. Vol 44 No. 4 July 2000.
 
+         IF(N.EQ.0) THEN
+            RETURN
+         END IF
          ! Base case
          IF(N.EQ.1) THEN
             T(1,1) = TAU(1)
