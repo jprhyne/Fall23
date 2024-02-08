@@ -12,6 +12,12 @@
 #include <cblas.h>
 #include <lapacke.h>
 
+double computePerform_refL(double m, double n, double k, double elapsed_refL)
+{
+    double numerator = 4.0/3.0*k*k*k - k*k*(2*m+2*n+3) + k*m*(4*n+3);
+    return (numerator)/(elapsed_refL*1.0e+9);
+}
+
 int main(int argc, char *argv[]) {
     // integer variables
     int info, lda, ldq, m, n, k, lwork, nb, i, j;
@@ -19,7 +25,7 @@ int main(int argc, char *argv[]) {
     // double variables
     double *A, *Q, *As, *tau, *work, *T=NULL;
     double normA;
-    double elapsed_refL, norm_orth_1, norm_repres_1;
+    double perform_refL, elapsed_refL, norm_orth_1, norm_repres_1;
     double zero = 0;
     double one = 1;
     double negOne = -1;
@@ -38,6 +44,8 @@ int main(int argc, char *argv[]) {
     // Dummy value that is used when calling fortran
     // functions that take characters from C
     size_t dummy = 0;
+
+    bool timesOnly = false;
 
     m = 30;
     n = 20;
@@ -70,18 +78,16 @@ int main(int argc, char *argv[]) {
             nb  = atoi( *(argv + i + 1) );
             i++;
         }
-        if( strcmp( *(argv + i), "-k") == 0) {
-            k  = atoi( *(argv + i + 1) );
-            i++;
+        if( strcmp( *(argv + i), "-t") == 0) {
+            timesOnly = true;
         }
     }
 
     if( lda < 0 ) lda = m;
     if( ldq < 0 ) ldq = m;
-    if( k < 0) k = n;
     // While our functionality works for when k < n,we are constructing a different
     // matrix Q, so to keep the comparisons reasonable, we will enforce k=n
-    //k = n;
+    k = n;
 
     // allocate memory for the matrices and vectors that we need to use
     A =   (double *) malloc(lda * k * sizeof(double));
@@ -92,7 +98,9 @@ int main(int argc, char *argv[]) {
 
     // Print to the user what we are doing along with any arguments that are used
     char *source = SOURCE;
-    printf("dgeqrf dorg2r %s | m = %4d, n = %d, k = %4d, lda = %4d, ldq = %4d\n", source, m, n, k, lda, ldq);
+    if(!timesOnly) {
+        printf("dgeqrf dorg2r %s | m = %4d, n = %d, k = %4d, lda = %4d, ldq = %4d\n", source, m, n, k, lda, ldq);
+    }
 
     // Generate A as a random matrix
     for (i = 0; i < lda * k; i++)
@@ -169,30 +177,62 @@ int main(int argc, char *argv[]) {
     // Compute ||A - Q*R||_F / ||A||_F
     norm_repres_1 /= normA;
 
-    printf("my_dorgkr: time = %f repres = %5.1e ortho = %5.1e\n", elapsed_refL, norm_repres_1, norm_orth_1);
+    // Compute 'performance'
+    // The numerator was computed by me using reference routines, and counting operations
+    perform_refL = computePerform_refL((double) m, (double) n, (double) k, elapsed_refL);
+    if(!timesOnly) {
+        printf("my_dorgkr: perf = %f time = %f repres = %5.1e ortho = %5.1e", perform_refL, elapsed_refL, norm_repres_1, norm_orth_1);
+    } else {
+        printf("k:%10.10e:%10.10e", elapsed_refL, perform_refL);
+    }
+    printf("\n");
 
     // Now do the regular dorg2r to compare time.
     // Since we are not testing the accuracy of this method, we only need to call dorg2r correctly
     work = (double *) realloc(work, 1 * sizeof(double));
 
     lwork = -1;
-    dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
-    lwork = work[0];
+    //dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
+    lwork = n;
     work = (double *) realloc(work, lwork * sizeof(double));
     // Take the current time for use with timing dorg2r
     gettimeofday(&tp, NULL);
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
 
     // Call dorg2r
-    dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
-    //dorg2r_(&m, &k, &k, As, &lda, tau, work, &info);
+    //dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
+    dorg2r_(&m, &k, &k, As, &lda, tau, work, &info);
 
     // Determine how much time has taken
     gettimeofday(&tp, NULL);
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
-    printf("dorg2r: time = %f\n", elapsed_refL);
+    perform_refL = computePerform_refL((double) m, (double) n, (double) k, elapsed_refL);
+    if(!timesOnly) {
+        printf("aocl dorg2r: perf = %f time = %f", perform_refL, elapsed_refL);
+    } else {
+        printf("a: %10.10e:%10.10e", elapsed_refL, perform_refL);
+    }
+    printf("\n");
     //printf("dorg2r: time = %f repres = %5.1e ortho = %5.1e\n", elapsed_refL, norm_repres_1, norm_orth_1);
     // Free memory before terminating 
+    // Take the current time for use with timing dorg2r
+    gettimeofday(&tp, NULL);
+    elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+
+    // Call dorg2r
+    //dorgqr_(&m, &n, &k, As, &lda, tau, work, &lwork, &info);
+    ref_dorg2r_(&m, &k, &k, As, &lda, tau, work, &info);
+
+    // Determine how much time has taken
+    gettimeofday(&tp, NULL);
+    elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    perform_refL = computePerform_refL((double) m, (double) n, (double) k, elapsed_refL);
+    if(!timesOnly) {
+        printf("reference dorg2r: perf = %f time = %f", perform_refL, elapsed_refL);
+    } else {
+        printf("r: %10.10e:%10.10e", elapsed_refL, perform_refL);
+    }
+    printf("\n");
     free(Q);
     free(As);
     free(A);

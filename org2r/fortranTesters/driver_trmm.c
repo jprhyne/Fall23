@@ -44,6 +44,10 @@ int main(int argc, char *argv[]) {
 
     if( lda < 0 ) lda = n;
     if( ldt < 0 ) ldt = m;
+    if( ldt < n ) ldt = n;
+    if( ldt < m ) ldt = m;
+    if( lda < m ) lda = m;
+    if( lda < n ) lda = n;
 
     char *source = SOURCE;
     printf("dtrmm vs dtrmmoop %s: m = %4d, n = %4d, lda = %4d, ldt = %4d\n",source, m, n, lda, ldt);

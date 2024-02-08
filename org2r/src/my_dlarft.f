@@ -6,10 +6,10 @@
          DOUBLE PRECISION  V(LDV,*), T(LDT,*), TAU(N)
 
          ! Local variables
-         INTEGER           I,J,K
+         INTEGER           I,J,K,INFO
          ! Parameters
-         DOUBLE PRECISION ONE, NEG_ONE
-         PARAMETER(ONE=1.0D+0, NEG_ONE=-1.0D+0)
+         DOUBLE PRECISION ONE, NEG_ONE, ZERO
+         PARAMETER(ONE=1.0D+0, ZERO = 0.0, NEG_ONE=-1.0D+0)
 
          ! Break V apart into 6 components
          ! V = |---------------|
@@ -17,7 +17,7 @@
          !     |V_{2,1} V_{2,2}|
          !     |V_{3,1} V_{3,2}|
          !     |---------------|
-         ! V_{1,1}\in\R^{k,k} unit upper triangular
+         ! V_{1,1}\in\R^{k,k} unit lower triangular
          ! V_{2,1}\in\R^{n-k,k} rectangular
          ! V_{3,1}\in\R^{m-n,k} rectangular
          ! 
@@ -81,7 +81,9 @@
                T(J,I) = V(I,J)
             END DO
          END DO
-         ! T_3 = T_3 * V_{2,2}
+         ! T_3 = V_{2,1}^\top * V_{2,2}
+!         CALL DTRMMOOP('Right', 'Unit', K, N-K, V(K+1,1), LDV, 
+!     $         V(K+1,K+1), LDV, ZERO, T(1, K+1), LDT, INFO)
          CALL DTRMM('Right', 'Lower', 'No transpose', 'Unit', 
      $         K, N - K, ONE, V(K+1, K+1), LDV, T(1, K+1), LDT)
 

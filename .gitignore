@@ -64,6 +64,7 @@ ref.txt
 todo.md
 tex/*pdf
 tex/*thm
+.ipynb_checkpoints/
 
 # Exclude tex auxilary files
 *aux
@@ -71,3 +72,6 @@ tex/*thm
 *blg
 *log
 *toc
+
+# Exclude temp file
+ParseTimeFileW.ipynb

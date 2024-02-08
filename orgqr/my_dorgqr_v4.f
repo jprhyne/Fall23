@@ -251,7 +251,6 @@
          ! faster for tall and skinny matrices. Should add a check to make sure
          ! we are in this case, but for now this is fine for testing purposes
          IF( K.EQ.N ) THEN
-            WRITE(*,*) "Running dorgkr"
             CALL MY_DLARFT(M, N, A, LDA, TAU, A, LDA)
             CALL MY_DORGKR(M, N, A, LDA)
          ELSE

@@ -21,3 +21,5 @@ dtrmmoop.o: dtrmmoop.f
 dtvt.o: dtvt.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
+dorg2r.o: dorg2r.f
+	$(FC) -c $(FFLAGS) $^ -o $@

@@ -1,6 +1,8 @@
 include make.inc
 # Group definitions
-default: test.exe driver test_optBlas.exe timeSVD.exe test_v1_opt.exe test_v2.exe test_v3.exe test_v0.exe test_v4.exe
+default: test.exe driver test_optBlas.exe timeSVD.exe tests
+
+tests: test_v0.exe test_v1_opt.exe test_v2.exe test_v3.exe test_v4.exe test_v5.exe test_v7.exe
 
 testDorgqr: test_mklDorgqr.exe test_refDorgqr.exe
 
@@ -28,6 +30,12 @@ test_mklDorgqr.exe: test.o
 test_v0.exe: test_my_dorgqr.o my_dorgqr_v0.o
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
+test_v1.exe: test_my_dorgqr.o my_dorgqr_v1.o
+	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+
+test_v1_opt.exe: test_my_dorgqr.o my_dorgqr_v1.o
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
+
 test_v2.exe: test_my_dorgqr.o my_dorgqr_v2.o
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
@@ -37,11 +45,11 @@ test_v3.exe: test_my_dorgqr.o my_dorgqr_v3.o ../org2r/src/my_dorgkr.o ../org2r/s
 test_v4.exe: test_my_dorgqr.o my_dorgqr_v4.o ../org2r/src/my_dorgkr.o ../org2r/src/lumm.o ../org2r/src/dtvt.o ../org2r/src/dtrmmoop.o ../org2r/src/my_dlarft.o
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-test_v1_opt.exe: test_my_dorgqr.o my_dorgqr_v1.o
+test_v5.exe: test_my_dorgqr.o my_dorgqr_v5.o my_dlarfb.o ../org2r/src/my_dorgkr.o ../org2r/src/lumm.o ../org2r/src/dtvt.o ../org2r/src/dtrmmoop.o ../org2r/src/my_dlarft.o 
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-test_v1.exe: test_my_dorgqr.o my_dorgqr_v1.o
-	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
+test_v7.exe: test_my_dorgqr.o my_dorgqr_v7.o ../org2r/src/my_dorgkr.o ../org2r/src/lumm.o ../org2r/src/dtvt.o ../org2r/src/dtrmmoop.o ../org2r/src/my_dlarft.o 
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 test.exe: my_dorgqr.o test_my_dorgqr.o
 	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(LAPACKLIB) $(CBLASLIB) $(BLASLIB) -o $@
@@ -53,6 +61,10 @@ driver: driver.c
 	$(CC) $(CFLAGS) $^ -o $@
 
 # Object file creations
+
+my_dlarfb.o: my_dlarfb.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
 test_my_dorgqr.o: test.c
 	$(CC) -c $(CFLAGS) -DUSE_MY_DORGQR $^ -o $@
 
@@ -84,6 +96,12 @@ my_dorgqr_v3.o: my_dorgqr_v3.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 my_dorgqr_v4.o: my_dorgqr_v4.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+my_dorgqr_v5.o: my_dorgqr_v5.f
+	$(FC) -c $(FFLAGS) $^ -o $@
+
+my_dorgqr_v7.o: my_dorgqr_v7.f
 	$(FC) -c $(FFLAGS) $^ -o $@
 
 test.o: test.c 

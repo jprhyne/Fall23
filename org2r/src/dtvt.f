@@ -33,7 +33,7 @@
 *
 *        Local variables
 *
-         INTEGER           K
+         INTEGER           K, INFO
 *
 *        External subroutines
 *
@@ -61,8 +61,8 @@
             CALL DTRMM('Right', 'Lower', 'Transpose', 'Unit', K, N - K, 
      $         ONE, Q(K + 1, K + 1), LDQ, Q(1, K + 1), LDQ)
 *           Compute T_{1,2} = T_{1,2} + T_{1,1}V_{2,1}^\top
-            CALL DTRMMOOP(K, N - K, Q(K + 1, 1), LDQ, Q, LDQ, 
-     $         Q(1, K + 1), LDQ)
+            CALL DTRMMOOP('Left', 'N', K, N - K, Q(K + 1, 1), LDQ, Q,
+     $         LDQ, ONE, Q(1, K + 1), LDQ, INFO)
 
 *           Compute T_{1,1} = T_{1,1}V_{1,1}^\top
             CALL DTVT(K, Q, LDQ)

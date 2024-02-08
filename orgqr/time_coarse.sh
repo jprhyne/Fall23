@@ -45,6 +45,11 @@ do
         do
             ./test_v4.exe -m $m -n $n -k $n -t
         done
+        echo "my_dorgqr_v5 ran 5 times"
+        for (( l=1; l<=5; l+=1 ))
+        do
+            ./test_v5.exe -m $m -n $n -k $n -t
+        done
     done
 done
 echo "Square matrices"
@@ -83,6 +88,11 @@ do
         for (( l=1; l<=5; l+=1 ))
         do
             ./test_v4.exe -m $m -n $n -k $k -t
+        done
+        echo "my_dorgqr_v5 ran 5 times"
+        for (( l=1; l<=5; l+=1 ))
+        do
+            ./test_v5.exe -m $m -n $n -k $n -t
         done
     done
 done

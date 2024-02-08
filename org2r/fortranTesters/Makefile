@@ -10,19 +10,19 @@ objectFiles:
 	$(MAKE) -C ../src all
 
 driver_dtvt.exe: driver_dtvt.o test_dtvt.o  ../src/dtrmmoop.o ../src/dtvt.o
-	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver_trmm.exe: driver_trmm.o testdtrmmoop.o ../src/dtrmmoop.o
-	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver_dorgkr.exe: driver_dorgkr.o test_dorgkr.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtrmmoop.o ../src/dtvt.o  ../src/my_dlarft.o
-	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver_dlarft.exe: driver_dlarft.o test_dlarft.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtrmmoop.o ../src/dtvt.o ../src/my_dlarft.o
-	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver_lumm.exe:   driver_lumm.o test_lumm.o ../src/lumm.o
-	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) -o $@
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver_dtvt.o: driver_dtvt.c
 	$(CC) -c $(CFLAGS) $^ -o $@

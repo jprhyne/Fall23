@@ -1,16 +1,18 @@
-* This subroutine will be used to essentially do a dtrmm('L','N','N','N',...) but not in
-* place on the transpose of matrix A
-* We compute C = T*A**T + C
-*     where T is upper unit triangular and A is rectangular
+* We compute C = T*A**T + ALPHA*C or C = A**T*T + ALPHA * C 
+* If SIDE = 'L'/'l' or 'R'/'r' respectively
+*     where T is upper triangular and A is rectangular
 * Currently do not support any other functionality, but can if desired
 *     C is m by n
 *     T is m by m
 *     A is n by m -> A**T is m by n
-      RECURSIVE SUBROUTINE DTRMMOOP(M, N, A, LDA, T, LDT, C, LDC)
+      RECURSIVE SUBROUTINE DTRMMOOP(SIDE, DIAG, M, N, A, LDA, T, LDT,
+     $                              ALPHA, C, LDC, INFO)
 *
 *        .. Scalar Arguments ..
 *
-         INTEGER           M, N, LDA, LDT, LDC
+         INTEGER           M, N, LDA, LDT, LDC, INFO
+         CHARACTER         SIDE, DIAG
+         DOUBLE PRECISION  ALPHA
 
 *
 *        .. Array arguments ..
@@ -72,8 +74,13 @@
          IF (M.EQ.0.OR.N.EQ.0) THEN
             RETURN
          END IF
+*        Determine if we have T on the left or right
+         IF(SIDE.EQ.'L'.OR.SIDE.EQ.'l') GOTO 10
+         IF(SIDE.EQ.'R'.OR.SIDE.EQ.'r') GOTO 20
+         INFO = -1
+         RETURN
 *        Base cases
-         IF (M.EQ.1) THEN
+   10    IF (M.EQ.1) THEN
 *           In this case, T is 1x1 upper triangular matrix.
 *           Therefore, we need to compute C = C + A*T(1,1)
 *
@@ -83,13 +90,15 @@
 *           around with removing later as a last cleanup step).
 *
             ! CALL DAXPY(N, T(1,1), A(1,1), 1, C(1,1), LDC)
-            CALL DAXPY(N, T(1,1), A(1,1), 1, C(1,1), LDC)
+            IF (ALPHA.NE.ONE) THEN
+               DO J=1, N
+                  C(1,J) = ALPHA * C(1,J)
+               END DO
+            END IF
+            CALL DAXPY(N, T(1,1),A(1,1), 1, C(1,1), LDC)
             !IF (N.EQ.1) THEN
             !   C(1,1) = C(1,1) + A(1,1)*T(1,1)
             !ELSE
-            !   DO 10 J = 1, N
-            !      C(1,J) = C(1,J) + A(J,1)*T(1,1)
-*   10          CONTINUE
             !END IF
             RETURN
          ELSE IF (N.EQ.1) THEN
@@ -99,34 +108,94 @@
 *           a modified matrix vector product (ie a modified form of dtrmv) But
 *           also out of place.
 *           We accomplish this by computing each element of C through ddot.
-            DO 20 I = 1,M
-               C(I,1) = C(I,1) + DDOT(M-I+1, T(I,I), LDT, A(1,I),LDA)
+            
+            DO I = 1,M
+               C(I,1) = ALPHA * C(I,1) + DDOT(M-I+1, T(I,I), LDT, 
+     $                     A(1,I),LDA)
 *               C(I,1) = C(I,1) + A(1, I)
 *               IF (I.LT.M) THEN
 *                  C(I,1) = C(I,1) + DDOT(M-I, T(I,I+1), LDT, 
 *     $                                   A(1,I+1),LDA)
 *               END IF
-   20       CONTINUE
+            END DO
             RETURN
          END IF
 *        Recursive case
          K = MIN(M,N) / 2
 *        Compute C21
-         CALL DTRMMOOP(M - K, K, A(1, K+1), LDA, T(K + 1, K + 1), 
-     $            LDT, C(K + 1, 1), LDC)
+         CALL DTRMMOOP(SIDE, DIAG, M - K, K, A(1, K+1), LDA,
+     $            T(K + 1, K + 1), LDT, ALPHA, C(K + 1, 1), LDC, INFO)
 *        Compute C22
-         CALL DTRMMOOP(M - K, N - K, A(K+1,K+1), LDA, T(K + 1, K + 1),
-     $           LDT, C(K + 1, K + 1), LDC)
+         CALL DTRMMOOP(SIDE, DIAG, M - K, N - K, A(K+1,K+1), LDA,
+     $           T(K+1,K+1), LDT, ALPHA, C(K + 1, K + 1), LDC, INFO)
 *        Compute C11 part 1
-         CALL DTRMMOOP(K, K, A, LDA, T, LDT, C, LDC)
+         CALL DTRMMOOP(SIDE, DIAG, K, K, A, LDA, T, LDT, ALPHA, C, LDC, 
+     $                  INFO)
 *        Compute C11 part 2
          CALL DGEMM('No transpose', 'Transpose', K, K, M - K, ONE, 
      $           T(1, K + 1), LDT, A(1, K + 1), LDA, ONE, C, LDC)
 *        Compute C12 part 1
-         CALL DTRMMOOP(K, N-K, A(K + 1, 1), LDA, T, LDT, C(1, K + 1),
-     $           LDC)
+         CALL DTRMMOOP(SIDE, DIAG, K, N-K, A(K + 1, 1), LDA, T, LDT, 
+     $           ALPHA, C(1, K + 1), LDC, INFO)
 *        Compute C12 part 2
          CALL DGEMM('No transpose', 'Transpose', K, N - K, M - K,
      $           ONE, T(1, K + 1), LDT, A(K + 1, K + 1), LDA,
      $           ONE, C(1, K + 1), LDC)
-      END SUBROUTINE 
+         INFO = 0
+         RETURN
+   20    IF (M.EQ.1) THEN
+            IF (ALPHA.NE.ONE) THEN
+               CALL DSCAL(N, ALPHA, C, LDC)
+            END IF
+            IF (DIAG.EQ.'U'.OR.DIAG.EQ.'u') THEN
+               C(1,1) = C(1,1) + A(1,1)
+               DO J = 2, N
+                  C(1,J) = C(1,J) + DDOT(J-1, A, 1, T(1,J), 1)
+                  C(1,J) = C(1,J) + A(J,1)
+               END DO
+            ELSE
+               DO J = 1, N
+                  C(1,J) = C(1,J) + DDOT(J, A, 1, T(1,J), 1)
+               END DO
+            END IF
+            RETURN
+         END IF
+         IF (N.EQ.1) THEN 
+         ! M.EQ.1 for above
+            IF (ALPHA.NE.ONE) THEN
+               CALL DSCAL(M, ALPHA, C, 1)
+            END IF
+            IF (DIAG.EQ.'U'.OR.DIAG.EQ.'u') THEN
+               CALL DCOPY(M, A, LDA, C, 1)
+            ELSE
+               CALL DAXPY(M, T(1,1), A(1,1), LDA, C(1,1), 1)
+            END IF
+            RETURN
+         END IF
+         K = MIN(M,N) / 2
+*        Compute C11
+         CALL DTRMMOOP(SIDE, DIAG, K, K, A, LDA, T, LDT, ALPHA, C, 
+     $                  LDC, INFO)
+*        Compute C21
+         CALL DTRMMOOP(SIDE, DIAG, M-K, K, A(1,K+1), LDA, T, LDT,
+     $                  ALPHA, C(K+1, 1), LDC, INFO)
+*        Compute C12
+*        Part 1
+         CALL DTRMMOOP(SIDE, DIAG, K, N-K, A(K+1,1), LDA, T(K+1,K+1),
+     $                  LDT, ALPHA, C(1, K+1), LDC, INFO)
+
+*        Part 2
+         CALL DGEMM('Transpose', 'No transpose', K, N-K, K, ONE, A, LDA,
+     $                  T(1,K+1), LDT, ONE, C(1, K+1), LDC)
+*        Compute C22
+*        Part 1
+         CALL DTRMMOOP(SIDE, DIAG, M-K, N-K, A(K+1,K+1), LDA,
+     $                  T(K+1,K+1), LDT, ALPHA, C(K+1,K+1), LDC, INFO)
+
+*        Part 2
+         CALL DGEMM('Transpose', 'No transpose', M-K, N-K, K, ONE, 
+     $                  A(1, K+1), LDA, T(1, K+1), LDT, ONE, C(K+1,K+1),
+     $                  LDC)
+         INFO = 0
+         RETURN
+      END SUBROUTINE
