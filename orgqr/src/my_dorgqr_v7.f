@@ -124,7 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
+      SUBROUTINE MY_DORGQR_V7( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
       IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
@@ -150,7 +150,8 @@
      $                   LWKOPT, NB, NBMIN, NX
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL           DLARFB, DLARFT, DORG2R, XERBLA, MY_DLARFT, MY_DORGKR
+      EXTERNAL             DLARFB, DLARFT, DORG2R, XERBLA, MY_DLARFT_REC, 
+     $                     MY_DORGKR
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -165,12 +166,7 @@
 *
       INFO = 0
       NB = ILAENV( 1, 'DORGQR', ' ', M, N, K, -1 )
-*     Reworking the LWORK computation since we only need WORK to be of
-*     size NB**2 to hold T. If N is 0, then we don't need any work array
-*     due to us doing a quick return. If it's less than 0, then we are
-*     erroring out, so we won't need a work array. LWKOPT would just be
-*     negative in this case.
-      LWKOPT = MIN( 1, N )*NB*NB
+      LWKOPT = MAX( 1, N )*NB
       WORK( 1 ) = LWKOPT
       LQUERY = ( LWORK.EQ.-1 )
       IF( M.LT.0 ) THEN
@@ -181,8 +177,8 @@
          INFO = -3
       ELSE IF( LDA.LT.MAX( 1, M ) ) THEN
          INFO = -5
-      ELSE IF( LWORK.LT.MAX( 1, NB*NB ) .AND. .NOT.LQUERY ) THEN
-         INFO = -8
+      !ELSE IF( LWORK.LT.MAX( 1, N*NB ) .AND. .NOT.LQUERY ) THEN
+      !   INFO = -8
       END IF
       IF( INFO.NE.0 ) THEN
          CALL XERBLA( 'DORGQR', -INFO )
@@ -241,9 +237,8 @@
 *      IF( KK.EQ.0 )
 *     $   CALL DORG2R( M, N, K, A, LDA, TAU, WORK, IINFO )
       IF( KK.EQ.0 ) THEN
-         write(*,*) "no block"
          IF(K.EQ.N) THEN
-            CALL MY_DLARFT(M, N, A, LDA, TAU, A, LDA)
+            CALL MY_DLARFT_REC(M, N, A, LDA, TAU, A, LDA)
             CALL MY_DORGKR(M, N, A, LDA)
          ELSE
             CALL DORG2R( M, N, K, A, LDA, TAU, WORK, IINFO ) 
@@ -259,7 +254,7 @@
 *
 *         CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-         CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
+         CALL MY_DLARFT_UT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
@@ -322,10 +317,6 @@
          CALL MY_DORGKR( M-I+1, IB, A(I,I), LDA)
 *         CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ), WORK,
 *     $                IINFO )
-*
-*        Set rows 1:i-1 of current block to zero
-*        NOTE: This is going to be C1 in the following loop
-*
          DO 50 I = KI + 1, 1, -NB
             IB = NB
 *
@@ -334,48 +325,16 @@
 *
 *            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-            CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
+            CALL MY_DLARFT_UT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), 
+     $         LDA)
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-*
-*              Form  H * C  or  H**T * C  where  C = ( C1=0 )
-*                                                    ( C2=* )
-*
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
-*
-**              W  := C2**T * V2
-*              C1 := V2**T * C2
-*
-               CALL DGEMM( 'Transpose', 'No transpose', IB, 
-     $                        N-I-IB+1, M-I+1-IB,
-     $                        ONE, A( I+IB, I ), LDA, 
-     $                        A( I + IB, I + IB ), LDA,
-     $                        ZERO, A(I,I+IB), LDA )
-*
-**              W  := W * T**T  or  W * T
-*              C1 := T * C1
-*
-               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
-     $                     IB, N-I-IB+1, ONE, A(I,I), LDA, 
-     $                     A(I,I+IB), LDA )
-*
-*              C := C - V * W**T
-*
-*
-**                 C2 := C2 - V2 * W**T
-*                 C2 := C2 - V2 * C1
-*
-                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
-     $                        N-I-IB+1, IB,
-     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
-     $                        ONE, A( I+IB, I+IB ), LDA )
-*
-**              W  := W * V1**T
-*              C1 := -V1 * C1
-*
-               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
-     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
+!            CALL MY_DLARFB(M-I+1, N-(I+IB)+1, IB, A(I,I), LDA,
+!     $                        A(I,I+IB),LDA)
+            CALL DLARFB('Left', 'No transpose', 'Forward', 'Col',
+     $                     M-I+1, N-(I+IB)+1, IB, A(I,I), LDA,
+     $                     A(I,I), LDA, A(I,I+IB), LDA, WORK, LDWORK)
 
 *
 *           Apply H to rows i:m of current block
@@ -399,44 +358,11 @@
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-*
-*              Form  H * C  or  H**T * C  where  C = ( C1=0 )
-*                                                    ( C2=* )
-*
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
-*
-**              W  := C2**T * V2
-*              C1 := V2**T * C2
-*
-               CALL DGEMM( 'Transpose', 'No transpose', IB, 
-     $                        N-I-IB+1, M-I+1-IB,
-     $                        ONE, A( I+IB, I ), LDA, 
-     $                        A( I + IB, I + IB ), LDA,
-     $                        ZERO, A(I,I+IB), LDA )
-*
-**              W  := W * T**T  or  W * T
-*              C1 := T * C1
-*
-               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
-     $                     IB, N-I-IB+1, ONE, WORK, LDWORK, 
-     $                     A(I,I+IB), LDA )
-*
-*              C := C - V * W**T
-*
-*
-**                 C2 := C2 - V2 * W**T
-*                 C2 := C2 - V2 * C1
-*
-                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
-     $                        N-I-IB+1, IB,
-     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
-     $                        ONE, A( I+IB, I+IB ), LDA )
-*
-**              W  := W * V1**T
-*              C1 := -V1 * C1
-*
-               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
-     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
+!            CALL MY_DLARFB(M-I+1, N-(I+IB)+1, IB, A(I,I), LDA,
+!     $                        A(I,I+IB),LDA)
+            CALL DLARFB('Left', 'No transpose', 'Forward', 'Col',
+     $                     M-I+1, N-(I+IB)+1, IB, A(I,I), LDA,
+     $                     A(I,I), LDA, A(I,I+IB), LDA, WORK, LDWORK)
 
 *
 *           Apply H to rows i:m of current block

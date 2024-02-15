@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     double normA;
     double elapsed_refL, perform_refL;
     struct timeval tp;
-    int i, j;
+    int i, j, version;
 
     char aChar = 'A';
     char fChar = 'F';
@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
     nb = 3; // Choose a default nb value that is NOT a factor of k
     lda = -1;
     ldq = -1;
+    version = -1; // Default to the system version (vendor usually)
     // Flag that helps facilitate testing with the driver.c file
     bool errorsOnly = false;
     // Flag that helps facilitate timing with the time.sh file
@@ -86,6 +87,10 @@ int main(int argc, char **argv) {
         if( strcmp( *(argv + i), "-t") == 0) {
             timesOnly  = true;
         }
+        if( strcmp( *(argv + i), "-v") == 0) {
+            version = atoi( *(argv + i + 1) );
+            i++;
+        }
     }
 
     if( lda < 0 ) lda = m;
@@ -93,14 +98,15 @@ int main(int argc, char **argv) {
     if( k > n) k = n;
 
     if (!errorsOnly && !timesOnly) {
-        printf("dgeqrf dgorgqr LAPACK | ");
+        printf("dgeqrf dgorgqr | ");
+        printf("version = %4d, ", version);
         printf("m = %4d, ",    m);
         printf("n = %4d, ",    n);
         printf("k = %4d, ",    k);
         printf("nb = %4d, ",    nb);
         printf("lda = %4d, ",lda);
         printf("ldq = %4d, ",ldq);
-        printf("             ");
+        printf("\n");
     }
 
     A  = (double *) calloc(lda * k,sizeof(double));
@@ -124,7 +130,36 @@ int main(int argc, char **argv) {
     dgeqrf_(&m, &k, A, &lda, tau, work, &negOne, &info);
     //LAPACKE_dgeqrf_work( LAPACK_COL_MAJOR, m, k, A, lda, tau, work, -1 ); 
     lwork = ((int) work[0]);
-    my_dorgqr_(&m, &n, &k, A, &lda, tau, work, &negOne, &info);
+    // determining what function to call based on the value of 'version'
+    switch(version) 
+    {
+        case 0:
+            my_dorgqr_v0_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 1:
+            my_dorgqr_v1_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 2:
+            my_dorgqr_v2_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 3:
+            my_dorgqr_v3_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 4:
+            my_dorgqr_v4_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 5:
+            my_dorgqr_v5_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 6:
+            my_dorgqr_v6_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 7:
+            my_dorgqr_v7_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        default:
+            dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    }
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, A, lda, tau, work, -1 );
     if (lwork < ((int) work[0])) lwork = ((int) work[0]); 
     free( work );
@@ -141,12 +176,36 @@ int main(int argc, char **argv) {
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, Q, ldq, tau, work, lwork );
     // Directly calling the fortran function dorgqr
     // Directly calling my fortran function my_dorgqr
-#ifdef USE_MY_DORGQR
-    my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
-#else
-    dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
-#endif
-    //my_dorgqr_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+    // determining what function to call based on the value of 'version'
+    switch(version) 
+    {
+        case 0:
+            my_dorgqr_v0_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 1:
+            my_dorgqr_v1_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 2:
+            my_dorgqr_v2_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 3:
+            my_dorgqr_v3_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 4:
+            my_dorgqr_v4_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 5:
+            my_dorgqr_v5_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 6:
+            my_dorgqr_v6_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 7:
+            my_dorgqr_v7_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        default:
+            dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+    }
 
     gettimeofday(&tp, NULL);
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);

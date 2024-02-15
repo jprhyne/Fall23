@@ -124,7 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
+      SUBROUTINE MY_DORGQR_V2( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
       IMPLICIT NONE
 *
 *  -- LAPACK computational routine --

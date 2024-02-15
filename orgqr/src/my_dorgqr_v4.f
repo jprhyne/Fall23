@@ -124,7 +124,7 @@
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
+      SUBROUTINE MY_DORGQR_V4( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
       IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
@@ -151,7 +151,7 @@
 *     ..
 *     .. External Subroutines ..
       EXTERNAL           DLARFB, DLARFT, DORG2R, XERBLA, MY_DORGKR,
-     $                   MY_DLARFT
+     $                   MY_DLARFT_REC
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -242,12 +242,16 @@
 *     $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
 *     $                TAU( KK+1 ), WORK, IINFO )
       IF( KK.EQ.0 ) THEN
+         ! Construct T for the whole matrix. Store this in the upper triangular
+         ! part as we will overwrite it anyway.
+         !CALL MY_DLARFT(M, K, A, LDA, TAU, A, LDA)
+         !CALL MY_DORGKR(M, K, A, LDA)
          ! Now, we need to compute the rows from k to n
          ! If we happen to have k=n, then we call our new function. This will be
          ! faster for tall and skinny matrices. Should add a check to make sure
          ! we are in this case, but for now this is fine for testing purposes
          IF( K.EQ.N ) THEN
-            CALL MY_DLARFT(M, N, A, LDA, TAU, A, LDA)
+            CALL MY_DLARFT_REC(M, N, A, LDA, TAU, A, LDA)
             CALL MY_DORGKR(M, N, A, LDA)
          ELSE
             CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
@@ -262,7 +266,7 @@
 *        Form the triangular factor of the block reflector
 *        H = H(i) H(i+1) . . . H(i+ib-1)
 *
-         CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I),LDA)
+         CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I),LDA)
 *         CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                A( I, I ), LDA, TAU( I ), WORK, LDWORK )
 *
@@ -287,7 +291,7 @@
 **        C2 := C2 - V2 * W**T
 *        C2 := C2 - V2 * C1
 *
-        CALL DGEMM( 'No transpose', 'No transpose', M-IB-KK, N-K, IB,
+         CALL DGEMM( 'No transpose', 'No transpose', M-IB-KK, N-K, IB,
      $               -ONE, A( I+IB, I ), LDA, A(I,I+IB),LDA, ZERO,
      $               A( I+IB, I+IB ), LDA )
          DO 14 JJ = K + 1, N
@@ -322,7 +326,8 @@
 *
 *            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-            CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
+            CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), 
+     $            LDA)
 *
 *           Apply H to A(i:m,k+1:n) from the left
 *
@@ -361,7 +366,8 @@
 *
 *            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-            CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
+            CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), 
+     $         LDA)
 *
 *           C12 = V2**T * C22
 *
@@ -393,7 +399,7 @@
 *
 *            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-         CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
+         CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
@@ -456,7 +462,8 @@
 *
 *            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-            CALL MY_DLARFT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
+            CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), 
+     $         LDA)
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
