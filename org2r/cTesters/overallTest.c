@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
 
     // Construct the T matrix associated with the householder reflectors
-    my_dlarft_(&m, &k, Q, &ldq, tau, Q, &ldq);
+    my_dlarft_rec_(&m, &k, Q, &ldq, tau, Q, &ldq);
     //dlarft_(&fChar, &cChar, &m, &k, Q, &ldq, tau, Q, &ldq, dummy, dummy);
 
     // Copy the upper triangular part of T into the upper triangular part of Q (Overwriting R)

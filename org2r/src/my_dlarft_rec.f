@@ -1,4 +1,4 @@
-      RECURSIVE SUBROUTINE MY_DLARFT(M, N, V, LDV, TAU, T, LDT)
+      RECURSIVE SUBROUTINE MY_DLARFT_REC(M, N, V, LDV, TAU, T, LDT)
          ! Arguemnts
          ! Scalars
          INTEGER           M, N, LDV, LDT
@@ -65,12 +65,12 @@
          K = N / 2
 
          ! Compute T_1
-         CALL MY_DLARFT(M, K, V, LDV, TAU, T, LDT)
+         CALL MY_DLARFT_REC(M, K, V, LDV, TAU, T, LDT)
          !CALL DLARFT('Forward', 'Column', M, K, V, LDV, TAU, T, LDT)
 
          ! Compute T_2
-         CALL MY_DLARFT(M-K, N-K, V(K+1,K+1), LDV, TAU(K+1), T(K+1,K+1),
-     $         LDT)
+         CALL MY_DLARFT_REC(M-K, N-K, V(K+1,K+1), LDV, TAU(K+1),
+     $         T(K+1,K+1), LDT)
          !CALL DLARFT('Forward', 'Column', M-K, N-K, V(K+1,K+1), LDV,
 *     $         TAU(K+1), T(K+1,K+1), LDT)
 

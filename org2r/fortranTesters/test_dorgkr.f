@@ -56,7 +56,8 @@
          DEALLOCATE(WORK)
          ! Compute the triangular factor T
          !CALL DLARFT('Forward', 'Column', M, K, Q, LDQ, TAU, Q, LDQ)
-         CALL MY_DLARFT(M, K, Q, LDQ, TAU, Q, LDQ)
+         CALL MY_DLARFT_REC(M, K, Q, LDQ, TAU, Q, LDQ)
+         !CALL MY_DLARFT_UT(M, K, Q, LDQ, TAU, Q, LDQ)
 
          ! Copy T into where R was inside Q
          !CALL DLACPY('Upper', K, K, T, K, Q, LDQ)

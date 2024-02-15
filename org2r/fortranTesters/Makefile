@@ -1,5 +1,7 @@
 include ../make.inc
 
+srcObjs := $(patsubst %.f,%.o,$(wildcard ../src/*.f))
+
 # Groups
 all: objectFiles driver_dtvt.exe driver_trmm.exe driver_dorgkr.exe driver_lumm.exe driver_dlarft.exe
 
@@ -9,19 +11,19 @@ clean:
 objectFiles: 
 	$(MAKE) -C ../src all
 
-driver_dtvt.exe: driver_dtvt.o test_dtvt.o  ../src/dtrmmoop.o ../src/dtvt.o
+driver_dtvt.exe: driver_dtvt.o test_dtvt.o  $(srcObjs)
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-driver_trmm.exe: driver_trmm.o testdtrmmoop.o ../src/dtrmmoop.o
+driver_trmm.exe: driver_trmm.o testdtrmmoop.o $(srcObjs)
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-driver_dorgkr.exe: driver_dorgkr.o test_dorgkr.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtrmmoop.o ../src/dtvt.o  ../src/my_dlarft.o
+driver_dorgkr.exe: driver_dorgkr.o test_dorgkr.o $(srcObjs)
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-driver_dlarft.exe: driver_dlarft.o test_dlarft.o ../src/my_dorgkr.o ../src/lumm.o ../src/dtrmmoop.o ../src/dtvt.o ../src/my_dlarft.o
+driver_dlarft.exe: driver_dlarft.o test_dlarft.o $(srcObjs)
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
-driver_lumm.exe:   driver_lumm.o test_lumm.o ../src/lumm.o
+driver_lumm.exe:   driver_lumm.o test_lumm.o $(srcObjs)
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
 
 driver_dtvt.o: driver_dtvt.c
