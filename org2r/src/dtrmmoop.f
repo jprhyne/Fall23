@@ -1,6 +1,8 @@
 * We compute C = T*A**T + ALPHA*C or C = A**T*T + ALPHA * C 
 * If SIDE = 'L'/'l' or 'R'/'r' respectively
-*     where T is upper triangular and A is rectangular
+*     For SIDE = 'L', T is upper triangular and for SIDE = 'R', T is lower
+*     triangular. This is due to where we need this functionality in our
+*     codebase
 * Currently do not support any other functionality, but can if desired
 *     C is m by n
 *     T is m by m
@@ -22,7 +24,7 @@
 *        .. Local variables ..
 *
          INTEGER           I,J,K
-         DOUBLE PRECISION  SUM
+         DOUBLE PRECISION  SUM, SCAL
 *
 *        .. Local parameters ..
 *
@@ -74,6 +76,8 @@
          IF (M.EQ.0.OR.N.EQ.0) THEN
             RETURN
          END IF
+         ! Setting the return value now. Update to -1 iff side is invalid
+         INFO = 0
 *        Determine if we have T on the left or right
          IF(SIDE.EQ.'L'.OR.SIDE.EQ.'l') GOTO 10
          IF(SIDE.EQ.'R'.OR.SIDE.EQ.'r') GOTO 20
@@ -90,16 +94,8 @@
 *           around with removing later as a last cleanup step).
 *
             ! CALL DAXPY(N, T(1,1), A(1,1), 1, C(1,1), LDC)
-            IF (ALPHA.NE.ONE) THEN
-               DO J=1, N
-                  C(1,J) = ALPHA * C(1,J)
-               END DO
-            END IF
+            CALL DSCAL(N, ALPHA, C(1,1), LDC)
             CALL DAXPY(N, T(1,1),A(1,1), 1, C(1,1), LDC)
-            !IF (N.EQ.1) THEN
-            !   C(1,1) = C(1,1) + A(1,1)*T(1,1)
-            !ELSE
-            !END IF
             RETURN
          ELSE IF (N.EQ.1) THEN
             ! Write quick implementation of dtrmvoop (should be similar to this
@@ -112,11 +108,6 @@
             DO I = 1,M
                C(I,1) = ALPHA * C(I,1) + DDOT(M-I+1, T(I,I), LDT, 
      $                     A(1,I),LDA)
-*               C(I,1) = C(I,1) + A(1, I)
-*               IF (I.LT.M) THEN
-*                  C(I,1) = C(I,1) + DDOT(M-I, T(I,I+1), LDT, 
-*     $                                   A(1,I+1),LDA)
-*               END IF
             END DO
             RETURN
          END IF
@@ -143,59 +134,50 @@
      $           ONE, C(1, K + 1), LDC)
          INFO = 0
          RETURN
-   20    IF (M.EQ.1) THEN
-            IF (ALPHA.NE.ONE) THEN
-               CALL DSCAL(N, ALPHA, C, LDC)
-            END IF
+   20    IF (N.EQ.1) THEN 
+            CALL DSCAL(M, ALPHA, C, 1)
             IF (DIAG.EQ.'U'.OR.DIAG.EQ.'u') THEN
-               C(1,1) = C(1,1) + A(1,1)
-               DO J = 2, N
-                  C(1,J) = C(1,J) + DDOT(J-1, A, 1, T(1,J), 1)
-                  C(1,J) = C(1,J) + A(J,1)
-               END DO
+               SCAL = ONE
             ELSE
-               DO J = 1, N
-                  C(1,J) = C(1,J) + DDOT(J, A, 1, T(1,J), 1)
-               END DO
+               SCAL = T(1,1)
             END IF
+            CALL DAXPY(M, SCAL, A, LDA, C, 1)
             RETURN
          END IF
-         IF (N.EQ.1) THEN 
-         ! M.EQ.1 for above
-            IF (ALPHA.NE.ONE) THEN
-               CALL DSCAL(M, ALPHA, C, 1)
-            END IF
+         IF (M.EQ.1) THEN
+            CALL DSCAL(N, ALPHA, C, LDC)
+            ! N >= 2
             IF (DIAG.EQ.'U'.OR.DIAG.EQ.'u') THEN
-               CALL DCOPY(M, A, LDA, C, 1)
+               DO J = N, 1, -1
+                  C(1,J) = C(1,J) + A(J,1) + DDOT(N - J, A(J + 1, 1), 1, 
+     $               T(J + 1,J), 1)
+               END DO
             ELSE
-               CALL DAXPY(M, T(1,1), A(1,1), LDA, C(1,1), 1)
+               DO J = N, 1, -1
+                  C(1,J) = C(1,J)  + DDOT(N - J + 1, A(J, 1), 1, 
+     $               T(J,J), 1)
+               END DO
             END IF
             RETURN
          END IF
          K = MIN(M,N) / 2
-*        Compute C11
-         CALL DTRMMOOP(SIDE, DIAG, K, K, A, LDA, T, LDT, ALPHA, C, 
-     $                  LDC, INFO)
-*        Compute C21
-         CALL DTRMMOOP(SIDE, DIAG, M-K, K, A(1,K+1), LDA, T, LDT,
-     $                  ALPHA, C(K+1, 1), LDC, INFO)
-*        Compute C12
-*        Part 1
-         CALL DTRMMOOP(SIDE, DIAG, K, N-K, A(K+1,1), LDA, T(K+1,K+1),
-     $                  LDT, ALPHA, C(1, K+1), LDC, INFO)
-
-*        Part 2
-         CALL DGEMM('Transpose', 'No transpose', K, N-K, K, ONE, A, LDA,
-     $                  T(1,K+1), LDT, ONE, C(1, K+1), LDC)
-*        Compute C22
-*        Part 1
+         ! Compute C12
+         CALL DTRMMOOP(SIDE, DIAG, K, N-K, A(K+1, 1), LDA, T(K+1,K+1),
+     $            LDT, ALPHA, C(1, K + 1), LDC, INFO)
+         ! Compute C22
          CALL DTRMMOOP(SIDE, DIAG, M-K, N-K, A(K+1,K+1), LDA,
-     $                  T(K+1,K+1), LDT, ALPHA, C(K+1,K+1), LDC, INFO)
-
-*        Part 2
-         CALL DGEMM('Transpose', 'No transpose', M-K, N-K, K, ONE, 
-     $                  A(1, K+1), LDA, T(1, K+1), LDT, ONE, C(K+1,K+1),
-     $                  LDC)
-         INFO = 0
+     $            T(K+1,K+1), LDT, ALPHA, C(K+1,K+1), LDC, INFO)
+         ! Compute C11 part 1
+         CALL DGEMM('Transpose', 'Non-transpose', K, K, N-K, ONE, 
+     $            A(K+1,1), LDA, T(K+1,1), LDT, ALPHA, C, LDC)
+         ! Compute C11 part 2
+         CALL DTRMMOOP(SIDE, DIAG, K, K, A, LDA, T, LDT, ONE, C, 
+     $            LDC, INFO)
+         ! Compute C21 part 1
+         CALL DGEMM('Transpose', 'Non-transpose', M-K, K, N-K, ONE,
+     $            A(K+1,K+1), LDA, T(K+1, 1), LDT, ALPHA, C(K+1,1),LDC)
+         ! Compute C21 part 2
+         CALL DTRMMOOP(SIDE, DIAG, M-K, K, A(1, K+1), LDA, T, LDT,
+     $            ONE, C(K+1,1), LDC, INFO)
          RETURN
       END SUBROUTINE
