@@ -5,6 +5,9 @@
 #SBATCH --job-name=time_dlarft.sh
 #SBATCH --partition=math-alderaan
 #SBATCH --time=8:00:00
-#SBATCH --ntasks=2
+#SBATCH --ntasks=9
+
+# In order to store the original matrix below, we need 12Gb in the largest test case (m=500000, n = 3200). We need 8*(5mn + n^2) bytes of memory for
+# our testing. So we need (5mn+n^2)/(1000^3) tasks. This is a little over 8. So we allocate 9
 
 ./time_dlarft.sh > dlarftTimings.txt
