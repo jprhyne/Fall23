@@ -5,6 +5,12 @@
 #include <sys/time.h>
 #include <math.h>
 // TODO: determine the operation count for larft
+double computePerf(double time, int m, int n) 
+{
+    double opCount = (double) n * ((double) n - 1.0) * (6.0 * (double) m - 2.0 * (double) n + 7);
+    opCount = opCount / 6.0;
+    return opCount / (time*1.0e+9);
+}
 // Compute the orthogonality norm
 // ||Q**T * Q - I||
 double computeOrthNorm(int m, int n, double *Q)
@@ -97,7 +103,7 @@ int main(int argc, char *argv[]) {
     bool timesOnly = false;
 
     m = 30;
-    n = 20;
+    n = -1;
     lda = -1;
     ldq = -1;
 
@@ -130,7 +136,13 @@ int main(int argc, char *argv[]) {
     // Determines blocking parameter for a large value of m,n, and k. This is to imitate a single panel
     // By calling the ilaenv we are compiling against,
     // we can ensure that even though we don't know exactly what ilaenv is doing, we are using the same blocking parameter
-    n = ilaenv_( &intOne, dorgqr, space, &m, &m, &m, &intNegOne, dummy, dummy);
+    // We only call this routine if the user does not provide a value for n
+    if (n == -1)
+        n = ilaenv_( &intOne, dorgqr, space, &m, &m, &m, &intNegOne, dummy, dummy);
+    // In the event n was too big, we force n to be m. This is because we do not do proper
+    // error checking for sake of speed as we are assuming we only working on tall and skinny matrices
+    if (n > m)
+        n = m;
     if( lda < 0 ) lda = m;
     // allocate memory for the matrices and vectors that we need to use
     A = (double *) malloc( lda * n * sizeof(double));
@@ -189,6 +201,8 @@ int main(int argc, char *argv[]) {
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
     // Store this value 
     double refTime = elapsed_refL;
+    // Compute the number of flops
+    double refFlop = computePerf(refTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -214,6 +228,8 @@ int main(int argc, char *argv[]) {
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
     // Store this value 
     double optTime = elapsed_refL;
+    // Compute the number of flops
+    double optFlop = computePerf(optTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -239,6 +255,8 @@ int main(int argc, char *argv[]) {
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
     // Store this value 
     double recTime = elapsed_refL;
+    // Compute the number of flops
+    double recFlop = computePerf(recTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -264,6 +282,8 @@ int main(int argc, char *argv[]) {
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
     // Store this value 
     double utTime = elapsed_refL;
+    // Compute the number of flops
+    double utFlop = computePerf(utTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -276,8 +296,8 @@ int main(int argc, char *argv[]) {
     norm_repres_ut = computeRepresNorm(m, n, V, A, lda, As, lda, normA);
 
     // Now, we print out the testing information
-    printf("reference DLARFT\ntime: %10.10e\north: %10.10e\nrepres: %10.10e\n", refTime, norm_orth_ref, norm_repres_ref);
-    printf("optimized DLARFT\ntime: %10.10e\north: %10.10e\nrepres: %10.10e\n", optTime, norm_orth_opt, norm_repres_opt);
-    printf("MY_DLARFT_REC\ntime: %10.10e\north: %10.10e\nrepres: %10.10e\n", recTime, norm_orth_rec, norm_repres_rec);
-    printf("MY_DLARFT_UT\ntime: %10.10e\north: %10.10e\nrepres: %10.10e\n", utTime, norm_orth_ut, norm_repres_ut);
+    printf("reference DLARFT\ntime: %10.10e\nperf: %10.10e\north: %10.10e\nrepres: %10.10e\n", refTime, refFlop, norm_orth_ref, norm_repres_ref);
+    printf("optimized DLARFT\ntime: %10.10e\nperf: %10.10e\north: %10.10e\nrepres: %10.10e\n", optTime, optFlop, norm_orth_opt, norm_repres_opt);
+    printf("MY_DLARFT_REC\ntime: %10.10e\nperf: %10.10e\north: %10.10e\nrepres: %10.10e\n", recTime, recFlop, norm_orth_rec, norm_repres_rec);
+    printf("MY_DLARFT_UT\ntime: %10.10e\nperf: %10.10e\north: %10.10e\nrepres: %10.10e\n", utTime, utFlop, norm_orth_ut, norm_repres_ut);
 }
