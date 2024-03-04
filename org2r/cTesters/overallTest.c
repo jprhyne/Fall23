@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <cblas.h>
-#include <lapacke.h>
 
 double computePerform_refL(double m, double n, double k, double elapsed_refL)
 {
