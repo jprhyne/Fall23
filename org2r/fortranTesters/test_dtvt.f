@@ -12,7 +12,7 @@
          DOUBLE PRECISION, ALLOCATABLE :: A(:,:), Q(:,:)
 
          ! External subroutines
-         EXTERNAL DTVT_CHEAT
+         EXTERNAL DTVT DLACPY
 
          ! Parameters
          DOUBLE PRECISION ONE

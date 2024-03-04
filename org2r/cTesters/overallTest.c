@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <math.h>
 
 double computePerform_refL(double m, double n, double k, double elapsed_refL)
 {
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     int workQuery = -1;
     // double variables
     double *A, *Q, *As, *tau, *work, *T=NULL;
-    double normA;
+    double normA, tmp;
     double perform_refL, elapsed_refL, norm_orth_1, norm_repres_1;
     double zero = 0;
     double one = 1;
@@ -110,7 +111,14 @@ int main(int argc, char *argv[]) {
     // Store a copy of A inside As
     dlacpy_(&aChar, &m, &k, A, &lda, As, &lda, dummy);
     // Find the norm of A for use in later accuracy computations
-    normA = dlange_(&fChar, &m, &k, A, &lda, NULL, dummy);
+    normA = 0.0;
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < n; j++) {
+            tmp = A[i + j*m];
+            normA += tmp*tmp;
+        }
+    }
+    normA = sqrt(normA);
     // Create the work array to do workspace queries
     work = (double *) malloc(sizeof(double));
     // Determine how much workspace is needed for our operations
@@ -155,7 +163,13 @@ int main(int argc, char *argv[]) {
     // Compute work = Q**T * Q - I
     dsyrk_(&uChar, &tChar, &k, &m, &one, Q, &ldq, &negOne, work, &k);
     // Compute the norm of work
-    norm_orth_1 = dlange_(&fChar, &k, &k, work, &k, NULL, dummy);
+    for (i=0; i < m; i++) {
+        for (j=0; j < n; j++) {
+            tmp = work[i + j*m] * work[i + j*m];
+            norm_orth_1 += tmp;
+        }
+    }
+    norm_orth_1 = sqrt(norm_orth_1);
 
     // reallocate work to be able to hold Q
     work = (double *)realloc(work, m * k * sizeof(double));
@@ -166,12 +180,14 @@ int main(int argc, char *argv[]) {
     dtrmm_(&rChar, &uChar, &nChar, &nChar, &m, &k, &one, A, &lda, work, &m, dummy, dummy, dummy, dummy);
     
     // Compute work = work - A
-    for (i = 0; i < m; i++)
-        for (j = 0; j < k; j++)
-            work[i + j * m] -= As[i + j * lda];
+    for (i = 0; i < m; i++) {
+        for (j = 0; j < k; j++) {
+            tmp = work[i +j*m] - As[i+j*lda];
+            norm_repres_1 += tmp * tmp;
+        }
+    }
     // Compute ||A - QR||_F
-    norm_repres_1 = dlange_(&fChar, &m, &k, work, &m, NULL, dummy);
-
+    norm_repres_1 = sqrt(norm_repres_1);
     // Compute ||A - Q*R||_F / ||A||_F
     norm_repres_1 /= normA;
 

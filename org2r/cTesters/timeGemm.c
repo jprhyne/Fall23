@@ -7,7 +7,7 @@
 // give a metric for what kind of performance is expected
 int main(int argc, char *argv[]) 
 {
-    long n = 10000;
+    long n = 100;
     double *A, *B, *C = NULL;
     double perform_refL, elapsed_refL;
     char nChar = 'N';
