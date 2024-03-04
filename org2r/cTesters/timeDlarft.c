@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <math.h>
 // TODO: determine the operation count for larft
 // Compute the orthogonality norm
 // ||Q**T * Q - I||
@@ -24,7 +25,11 @@ double computeOrthNorm(int m, int n, double *Q)
     // Compute work = Q**T * Q - I
     dsyrk_(&uChar, &tChar, &n, &m, &one, Q, &m, &negOne, work, &n);
     // Compute the norm of work
-    return dlange_(&fChar, &n, &n, work, &n, NULL, dummy);
+    double ret = 0.0;
+    for (int i = 0; i < n * n; i++)
+        ret += work[i] * work[i];
+    ret = sqrt(ret);
+    return ret;
 }
 // Compute the representation norm
 // ||As - QR|| / ||As||
@@ -48,7 +53,10 @@ double computeRepresNorm(int m, int n, double *Q, double *R, int ldr, double *As
     for (int i = 0; i < m; i++)
         for (int j = 0; j < n; j++)
             work[i + j * m] -= As[i + j * lda];
-    double ref = dlange_(&fChar, &m, &n, work, &m, NULL, dummy);
+    double ref = 0.0;
+    for (int i = 0; i < m * n; i++) 
+        ref += work[i]*work[i];
+    ref = sqrt(ref);
     return ref / normA;
 }
 // In order to ensure accuracy, we will throw the computed T factor into 
@@ -140,7 +148,10 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < lda * n; i++)
         A[i] = (double) rand() / (double) (RAND_MAX) - 0.5e+00;
 
-    normA = dlange_(&fChar, &m, &n, A, &lda, NULL, dummy);
+    normA = 0.0;
+    for (i = 0; i < lda * n; i++) 
+        normA += A[i] * A[i];
+    normA = sqrt(normA);
     // Create the work array to do workspace queries
     work = (double *) malloc(sizeof(double));
     // allocate the tau vector
