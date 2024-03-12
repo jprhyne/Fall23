@@ -14,9 +14,10 @@ CBLASLIB=$(LAPACKROOT)/libcblas.a
 
 CC=gcc
 FC=gfortran
-
-CFLAGS=-g -Wno-implicit
-FFLAGS=-fimplicit-none -g
+# Below optimizer flags are to mirror what blis and libflame use
+# Doesn't seem to have much of an impact on what we're doing.
+CFLAGS=-g -Wno-implicit -O3
+FFLAGS=-fimplicit-none -g -O3
 
 # This is the compilation flags needed to compile with optimized blas
 # For intel machines, this whatever is needed for MKL.

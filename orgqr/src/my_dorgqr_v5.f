@@ -185,8 +185,6 @@ c
          INFO = -3
       ELSE IF( LDA.LT.MAX( 1, M ) ) THEN
          INFO = -5
-      ELSE IF( LWORK.LT.MAX( 1, NB*NB ) .AND. .NOT.LQUERY ) THEN
-         INFO = -8
       END IF
       IF( INFO.NE.0 ) THEN
          CALL XERBLA( 'DORGQR', -INFO )
@@ -358,8 +356,8 @@ c
 *           Form the triangular factor of the block reflector
 *           H = H(i) H(i+1) . . . H(i+ib-1)
 *
-            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
-     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
+            CALL MY_DLARFT_REC(M-I+1, IB,
+     $                   A( I, I ), LDA, TAU( I ), A(I,I), LDA )
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
@@ -382,7 +380,7 @@ c
 *              C1 := T * C1
 *
                CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
-     $                     IB, N-I-IB+1, ONE, WORK, LDWORK, 
+     $                     IB, N-I-IB+1, ONE, A(I,I), LDA, 
      $                     A(I,I+IB), LDA )
 *
 *              C := C - V * W**T
@@ -405,13 +403,13 @@ c
 *
 *           Apply H to rows i:m of current block
 *
-            CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ), WORK,
-     $                   IINFO )
+            CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ),
+     $                   A(I,I), IINFO )
 
          END IF
       END IF
 *
-      WORK( 1 ) = IWS
+*      WORK( 1 ) = IWS
       RETURN
 *
 *     End of DORGQR

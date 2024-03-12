@@ -182,8 +182,6 @@
          INFO = -3
       ELSE IF( LDA.LT.MAX( 1, M ) ) THEN
          INFO = -5
-      ELSE IF( LWORK.LT.MAX( 1, NB*NB ) .AND. .NOT.LQUERY ) THEN
-         INFO = -8
       END IF
       IF( INFO.NE.0 ) THEN
          CALL XERBLA( 'DORGQR', -INFO )

@@ -18,7 +18,7 @@ cleanSrc:
 timeSVD_opt.exe: timeSVD.o src/my_dorgqr_v1.o src/my_dgesvd.o
 	$(FC) $(CFLAGS) $^ $(LAPACKELIB) $(OPTBLAS) -o $@
 
-timeSVD.exe: timeSVD.o src/my_dorgqr.o src/my_dgesvd.o src/dgesvd.o
+timeSVD.exe: timeSVD.o src/my_dorgqr.o src/my_dgesvd.o referenceFiles/dgesvd.o
 	$(FC) $(CFLAGS) $^ $(LAPACKLIB) $(BLASLIB) $(LAPACKELIB) -o $@
 
 test.exe: test.o $(2rObjs) $(objects)

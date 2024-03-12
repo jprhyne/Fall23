@@ -20,9 +20,8 @@
 *              Form  H * C  or  H**T * C  where  C = ( C1=0 )
 *                                                    ( C2=* )
 *
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
+*              C := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
 *
-**              W  := C2**T * V2
 *              C1 := V2**T * C2
 *
          CALL DGEMM( 'Transpose', 'No transpose', K, N, M - K, ONE, 
