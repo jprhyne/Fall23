@@ -134,31 +134,31 @@ int main(int argc, char **argv) {
     switch(version) 
     {
         case 0:
-            my_dorgqr_v0_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v0_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 1:
-            my_dorgqr_v1_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v1_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 2:
-            my_dorgqr_v2_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v2_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 3:
-            my_dorgqr_v3_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v3_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 4:
-            my_dorgqr_v4_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v4_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 5:
-            my_dorgqr_v5_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v5_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 6:
-            my_dorgqr_v6_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v6_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         case 7:
-            my_dorgqr_v7_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            my_dorgqr_v7_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         default:
-            dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
+            dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &negOne, &info);
     }
     //LAPACKE_dorgqr_work( LAPACK_COL_MAJOR, m, n, k, A, lda, tau, work, -1 );
     if (lwork < ((int) work[0])) lwork = ((int) work[0]); 
