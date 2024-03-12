@@ -1,3 +1,6 @@
+c
+c  This file uses my_dlarft_rec and my_dorgkr inside our loops
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========

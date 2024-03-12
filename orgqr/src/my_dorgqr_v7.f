@@ -1,3 +1,6 @@
+c
+c  This file is my_dorgqr_v6.f but replacing my_dlarft_rec with my_dlarft_ut
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========

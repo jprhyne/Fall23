@@ -1,3 +1,6 @@
+c
+c This file is repackaged dorgqr using our interface
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========

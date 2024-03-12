@@ -1,3 +1,7 @@
+c
+c  This file uses my_dlarft_rec and my_dorgkr inside our loops
+c     Also computes Q2 seperately from Q1
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========
@@ -284,7 +288,6 @@
 *
 **        W := W * T**T  or  W * T
 *        C1 := T * C1
-*
          CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit', IB,
      $               N-K,ONE, A(I,I), LDA, A(I,I+IB),LDA )
 *

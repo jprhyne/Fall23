@@ -1,3 +1,7 @@
+c
+c  This file is my_dorgqr_v5.f but with some loops rewritten to be more sane
+c     and easy to read
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========

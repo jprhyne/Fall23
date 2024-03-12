@@ -1,3 +1,7 @@
+c
+c This file is responsible for taking advantage of the fact that at the
+c  beginning of our iteration, we have the identity
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========

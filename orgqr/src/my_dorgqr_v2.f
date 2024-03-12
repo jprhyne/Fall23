@@ -1,3 +1,6 @@
+c
+c  This file seperates computing Q2 and Q1 into seperate loops
+c
 *> \brief \b DORGQR
 *
 *  =========== DOCUMENTATION ===========
