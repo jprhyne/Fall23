@@ -1,4 +1,4 @@
-include make.inc
+include ../make.inc
 # Group definitions
 
 objects := $(patsubst %.f,%.o,$(wildcard *.f))

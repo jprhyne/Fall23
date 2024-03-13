@@ -3,7 +3,7 @@ include ../make.inc
 2rObjs := $(patsubst %.f,%.o,$(wildcard ../../org2r/src/*.f))
 objects := $(patsubst %.f,%.o,$(wildcard ../src/*.f))
 
-default: srcFiles timeSVD.exe timeSVD_opt.exe timeDorgqr.exe timeDlarfb.exe
+default: srcFiles timeDlarfb.exe
 
 srcFiles:
 	+$(MAKE) -C ../src
