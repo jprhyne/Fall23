@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
     if( k > n) k = n;
 
     if (!errorsOnly && !timesOnly) {
-        printf("dgeqrf dgorgqr | ");
+        printf("dgeqrf dorgqr | ");
         printf("version = %4d, ", version);
         printf("m = %4d, ",    m);
         printf("n = %4d, ",    n);
