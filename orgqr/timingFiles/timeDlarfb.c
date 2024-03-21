@@ -64,9 +64,6 @@ int main(int argc, char **argv)
             k  = atoi( *(argv + i + 1) );
             i++;
         }
-        if( strcmp( *(argv + i), "-e") == 0) {
-            errorsOnly  = true;
-        }
         if( strcmp( *(argv + i), "-t") == 0) {
             timesOnly  = true;
         }
