@@ -1,0 +1,11 @@
+#!/bin/env bash
+# time_dlarfb.batch
+# batch job for running time_dlarft.sh on the alderaan cluster
+# Johnathan Rhyne
+#SBATCH --job-name=time_dlarfb.sh
+#SBATCH --partition=math-alderaan
+#SBATCH --time=1:00:00
+#SBATCH --ntasks=9
+
+
+./timeDlarfb.exe -m 50000 -n 10000 -k 32
