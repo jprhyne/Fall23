@@ -15,6 +15,14 @@
 #include <string.h>
 #include <sys/time.h>
 
+void checkMemory(void *ptr)
+{
+    if (ptr == NULL) {
+        printf("Insufficient Memory. Terminating Execution\n");
+        exit(1);
+    }
+}
+
 int main(int argc, char **argv)
 {
     // Local params
@@ -88,9 +96,15 @@ int main(int argc, char **argv)
     T  = (double *) calloc(k * k, sizeof(double));
     C  = (double *) calloc(m * n, sizeof(double));
     Cs  = (double *) calloc(m * n, sizeof(double));
+    checkMemory(Q);
+    checkMemory(Qs);
+    checkMemory(T);
+    checkMemory(C);
+    checkMemory(Cs);
     // Part of the call to dlarfb requires a workspace
     // may be able to refactor it out, but not really worth the effort on a timing test file
     workMat = (double *) calloc(m * m, sizeof(double));
+    checkMemory(workMat);
 
     for(i = 0; i < m * n; ++i)
         *(Q + i) = (double)rand() / (double)(RAND_MAX) - 0.5e+00;
@@ -102,13 +116,16 @@ int main(int argc, char **argv)
     dlacpy_(&aChar, &m, &n, C, &m, Cs, &m, dummy);
 
     tau = (double *) malloc( n * sizeof(double));
+    checkMemory(tau);
 
     work = (double *) malloc( 1 * sizeof(double));
+    checkMemory(work);
     dgeqrf_(&m, &n, Q, &m, tau, work, &negOne, &info);
     //LAPACKE_dgeqrf_work( LAPACK_COL_MAJOR, m, k, A, lda, tau, work, -1 ); 
     lwork = ((int) work[0]);
     free( work );
     work = (double *) malloc( lwork * sizeof(double));
+    checkMemory(work);
     
     // Compute the householder reflectors for A
     dgeqrf_(&m, &n, Q, &m, tau, work, &lwork, &info);

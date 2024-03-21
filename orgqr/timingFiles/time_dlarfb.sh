@@ -9,6 +9,7 @@ do
     echo "Testing file ran 10 times"
     for (( l=1; l<=10; l+=1 ))
     do
-        ./timeDlarfb.exe -m $m -n 30000 -k 32
+        # n is this small so that we can run it with our innefficient timing method.
+        ./timeDlarfb.exe -m $m -n 10000 -k 32
     done
 done
