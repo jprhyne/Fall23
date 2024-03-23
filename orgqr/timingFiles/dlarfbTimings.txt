@@ -1,0 +1,832 @@
+m=50000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2473511696e-01
+MY:  1.1467695236e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2219190598e-01
+MY:  1.1902809143e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.1964702606e-01
+MY:  1.1361598969e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2049198151e-01
+MY:  1.1465501785e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2125301361e-01
+MY:  1.1394786835e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2274885178e-01
+MY:  1.1802911758e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2102890015e-01
+MY:  1.1550402641e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.1967897415e-01
+MY:  1.1435317993e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.2077021599e-01
+MY:  1.1506199837e-01
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+OPT: 1.1947679520e-01
+MY:  1.1412191391e-01
+m=52000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.2688708305e-01
+MY:  1.2082004547e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.2330889702e-01
+MY:  1.1698293686e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.2531089783e-01
+MY:  1.1932706833e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.2670898438e-01
+MY:  1.3803911209e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.3698410988e-01
+MY:  1.3100814819e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.4293885231e-01
+MY:  1.4999508858e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.3583183289e-01
+MY:  1.2834692001e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.3574695587e-01
+MY:  1.2982892990e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.3772821426e-01
+MY:  1.3194108009e-01
+dgeqrf dlarft dlarfb LAPACK | m = 52000, n = 1000, k =   32
+OPT: 1.3096618652e-01
+MY:  1.2614989281e-01
+m=54000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.3835096359e-01
+MY:  1.3239789009e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.3150906563e-01
+MY:  1.3454294205e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.4713120461e-01
+MY:  1.3392806053e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.3132596016e-01
+MY:  1.2771606445e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.3219809532e-01
+MY:  1.2708902359e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.4196801186e-01
+MY:  1.3276100159e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.3429999352e-01
+MY:  1.2681198120e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.5134906769e-01
+MY:  1.5813612938e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.3801288605e-01
+MY:  1.3111805916e-01
+dgeqrf dlarft dlarfb LAPACK | m = 54000, n = 1000, k =   32
+OPT: 1.2969994545e-01
+MY:  1.2367916107e-01
+m=56000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4443898201e-01
+MY:  1.4661002159e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4319896698e-01
+MY:  1.3731408119e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.3535404205e-01
+MY:  1.3233804703e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4265608788e-01
+MY:  1.3563990593e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.5003800392e-01
+MY:  1.4360189438e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4092898369e-01
+MY:  1.6063404083e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4921498299e-01
+MY:  1.4217090607e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.5357208252e-01
+MY:  1.4210605621e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4831709862e-01
+MY:  1.3943910599e-01
+dgeqrf dlarft dlarfb LAPACK | m = 56000, n = 1000, k =   32
+OPT: 1.4879894257e-01
+MY:  1.4163398743e-01
+m=58000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.3995814323e-01
+MY:  1.3271403313e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4506697655e-01
+MY:  1.3924694061e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4516997337e-01
+MY:  1.3813495636e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4668512344e-01
+MY:  1.4225220680e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4469718933e-01
+MY:  1.3906598091e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4114999771e-01
+MY:  1.3486909866e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4630413055e-01
+MY:  1.4083790779e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4349293709e-01
+MY:  1.3750100136e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4419412613e-01
+MY:  1.4408802986e-01
+dgeqrf dlarft dlarfb LAPACK | m = 58000, n = 1000, k =   32
+OPT: 1.4451694489e-01
+MY:  1.4035201073e-01
+m=60000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4859795570e-01
+MY:  1.4218306541e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4364385605e-01
+MY:  1.3836407661e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4983510971e-01
+MY:  1.4483094215e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4355611801e-01
+MY:  1.3666319847e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.5012788773e-01
+MY:  1.4378595352e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4443397522e-01
+MY:  1.3670015335e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4448809624e-01
+MY:  1.3780689240e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.4297008514e-01
+MY:  1.3597893715e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.5251111984e-01
+MY:  1.4574503899e-01
+dgeqrf dlarft dlarfb LAPACK | m = 60000, n = 1000, k =   32
+OPT: 1.5036296844e-01
+MY:  1.4384007454e-01
+m=62000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5382695198e-01
+MY:  1.4953899384e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5200209618e-01
+MY:  1.4781808853e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5948605537e-01
+MY:  1.5560197830e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5366411209e-01
+MY:  1.4786100388e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5551805496e-01
+MY:  1.4945507050e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5916705132e-01
+MY:  1.5544390678e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5257716179e-01
+MY:  1.5481281281e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5229201317e-01
+MY:  1.5002012253e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.6014194489e-01
+MY:  1.5738487244e-01
+dgeqrf dlarft dlarfb LAPACK | m = 62000, n = 1000, k =   32
+OPT: 1.5226006508e-01
+MY:  1.5511608124e-01
+m=64000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5028004646e-01
+MY:  3.3076405525e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5715007782e-01
+MY:  3.3719992638e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5212516785e-01
+MY:  3.3494400978e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5399198532e-01
+MY:  3.3286499977e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5762095451e-01
+MY:  3.3781909943e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5381102562e-01
+MY:  3.3318185806e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5386204720e-01
+MY:  3.3126401901e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5679602623e-01
+MY:  3.3126807213e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5619783401e-01
+MY:  3.3710503578e-01
+dgeqrf dlarft dlarfb LAPACK | m = 64000, n = 1000, k =   32
+OPT: 3.5444402695e-01
+MY:  3.5541415215e-01
+m=66000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.6609907150e-01
+MY:  1.6104388237e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.6557097435e-01
+MY:  1.6219997406e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.7039203644e-01
+MY:  1.6570401192e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.6108202934e-01
+MY:  1.6164088249e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.7100596428e-01
+MY:  1.6093802452e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.6046714783e-01
+MY:  1.6110491753e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.5889716148e-01
+MY:  1.5304398537e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.6637778282e-01
+MY:  1.6140007973e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.5881299973e-01
+MY:  1.5686106682e-01
+dgeqrf dlarft dlarfb LAPACK | m = 66000, n = 1000, k =   32
+OPT: 1.5897488594e-01
+MY:  1.5865302086e-01
+m=68000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7740106583e-01
+MY:  1.6754388809e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7276692390e-01
+MY:  1.6364908218e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7691683769e-01
+MY:  1.6811394691e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7506003380e-01
+MY:  1.6506195068e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7596197128e-01
+MY:  1.6675996780e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.6916108131e-01
+MY:  1.5965580940e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7647790909e-01
+MY:  1.6660714149e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7324686050e-01
+MY:  1.6446304321e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7585301399e-01
+MY:  1.6624903679e-01
+dgeqrf dlarft dlarfb LAPACK | m = 68000, n = 1000, k =   32
+OPT: 1.7452383041e-01
+MY:  1.6468381882e-01
+m=70000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.7036819458e-01
+MY:  1.6348314285e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.7544603348e-01
+MY:  1.6635799408e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.9369983673e-01
+MY:  1.6704297066e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.8693709373e-01
+MY:  1.8171906471e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.8185210228e-01
+MY:  1.7002105713e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.7685794830e-01
+MY:  1.6749906540e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.7867588997e-01
+MY:  1.8515896797e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.9591403008e-01
+MY:  1.8288397789e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.8551898003e-01
+MY:  1.7116713524e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 1.8124508858e-01
+MY:  1.7279505730e-01
+m=72000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8803286552e-01
+MY:  1.8157386780e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8007206917e-01
+MY:  1.8149685860e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8139410019e-01
+MY:  1.7336392403e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8166399002e-01
+MY:  1.7202711105e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8348193169e-01
+MY:  1.7396593094e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.9068121910e-01
+MY:  1.8309092522e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8068885803e-01
+MY:  1.7209196091e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8848299980e-01
+MY:  1.8329501152e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.8823409081e-01
+MY:  1.7877197266e-01
+dgeqrf dlarft dlarfb LAPACK | m = 72000, n = 1000, k =   32
+OPT: 1.7903017998e-01
+MY:  1.7443895340e-01
+m=74000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.9159603119e-01
+MY:  1.8238592148e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.9351792336e-01
+MY:  1.8695592880e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8039512634e-01
+MY:  1.8063712120e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8946313858e-01
+MY:  1.8124389648e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8269014359e-01
+MY:  1.8119502068e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8711090088e-01
+MY:  1.8251609802e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8451499939e-01
+MY:  1.7633414268e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 2.0909285545e-01
+MY:  2.0528316498e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8374109268e-01
+MY:  1.7286300659e-01
+dgeqrf dlarft dlarfb LAPACK | m = 74000, n = 1000, k =   32
+OPT: 1.8206405640e-01
+MY:  1.7231416702e-01
+m=76000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 2.0098209381e-01
+MY:  1.8985080719e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.8930196762e-01
+MY:  2.0754504204e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 2.0483803749e-01
+MY:  2.1228694916e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.8698596954e-01
+MY:  1.8056893349e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.9684100151e-01
+MY:  1.8366289139e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.9365000725e-01
+MY:  1.9020295143e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.9570994377e-01
+MY:  1.8865394592e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.9069695473e-01
+MY:  1.8340086937e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.8870806694e-01
+MY:  1.8465900421e-01
+dgeqrf dlarft dlarfb LAPACK | m = 76000, n = 1000, k =   32
+OPT: 1.9723606110e-01
+MY:  1.9366002083e-01
+m=78000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.0061397552e-01
+MY:  2.0398688316e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.0171380043e-01
+MY:  1.9483494759e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.0776486397e-01
+MY:  1.9903779030e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 1.9783806801e-01
+MY:  1.9003701210e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.1129798889e-01
+MY:  2.1444106102e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.0429205894e-01
+MY:  1.9644379616e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 1.9963812828e-01
+MY:  2.1637797356e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 1.9692301750e-01
+MY:  1.8755102158e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.0326995850e-01
+MY:  1.9470191002e-01
+dgeqrf dlarft dlarfb LAPACK | m = 78000, n = 1000, k =   32
+OPT: 2.0143389702e-01
+MY:  1.9423913956e-01
+m=80000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.3268699646e-01
+MY:  2.2466087341e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.4102020264e-01
+MY:  2.2851514816e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.3275995255e-01
+MY:  2.2130584717e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.3641586304e-01
+MY:  2.2250795364e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.3358011246e-01
+MY:  2.2082281113e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.4556612968e-01
+MY:  2.2666096687e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.3814105988e-01
+MY:  2.2720599174e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.4087905884e-01
+MY:  2.2294878960e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.3597884178e-01
+MY:  2.2110915184e-01
+dgeqrf dlarft dlarfb LAPACK | m = 80000, n = 1000, k =   32
+OPT: 2.4077391624e-01
+MY:  2.2454905510e-01
+m=82000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0713686943e-01
+MY:  1.9032883644e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.1240496635e-01
+MY:  2.0401692390e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.1462607384e-01
+MY:  1.9868397713e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0537090302e-01
+MY:  1.9010782242e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0622992516e-01
+MY:  1.9817996025e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0480680466e-01
+MY:  1.9112801552e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0948004723e-01
+MY:  1.9984102249e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0857906342e-01
+MY:  1.9758105278e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 2.0866417885e-01
+MY:  1.9671201706e-01
+dgeqrf dlarft dlarfb LAPACK | m = 82000, n = 1000, k =   32
+OPT: 1.9818305969e-01
+MY:  1.8703389168e-01
+m=84000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.1871304512e-01
+MY:  2.0534682274e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.3100519180e-01
+MY:  2.1869111061e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.2264599800e-01
+MY:  2.0820689201e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.1840906143e-01
+MY:  2.0575785637e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.2905087471e-01
+MY:  2.1610903740e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.1867299080e-01
+MY:  2.0589995384e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.2989511490e-01
+MY:  2.1605587006e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.1838688850e-01
+MY:  2.0549511909e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.1880197525e-01
+MY:  2.0511293411e-01
+dgeqrf dlarft dlarfb LAPACK | m = 84000, n = 1000, k =   32
+OPT: 2.2873497009e-01
+MY:  2.1664500237e-01
+m=86000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.1607804298e-01
+MY:  2.0872783661e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.2456502914e-01
+MY:  2.1636486053e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.2012615204e-01
+MY:  2.0616197586e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.2522211075e-01
+MY:  2.1625995636e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.1502089500e-01
+MY:  2.0436501503e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.2607994080e-01
+MY:  2.1632814407e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.1403598785e-01
+MY:  2.0499300957e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.2462320328e-01
+MY:  2.1572494507e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.1652197838e-01
+MY:  2.0536994934e-01
+dgeqrf dlarft dlarfb LAPACK | m = 86000, n = 1000, k =   32
+OPT: 2.1471405029e-01
+MY:  2.0453214645e-01
+m=88000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.2559380531e-01
+MY:  2.1691393852e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.1706509590e-01
+MY:  2.0695900917e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.2921109200e-01
+MY:  2.2233819962e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.1362686157e-01
+MY:  2.0665216446e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.2593092918e-01
+MY:  2.1783304214e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.1334910393e-01
+MY:  2.0723509789e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.2545218468e-01
+MY:  2.1694493294e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.1319508553e-01
+MY:  2.0638704300e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.1641492844e-01
+MY:  2.0883297920e-01
+dgeqrf dlarft dlarfb LAPACK | m = 88000, n = 1000, k =   32
+OPT: 2.1654891968e-01
+MY:  2.0837903023e-01
+m=90000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.2481989861e-01
+MY:  2.1488904953e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.1951198578e-01
+MY:  2.0998406410e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.2352313995e-01
+MY:  2.1421098709e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.1243906021e-01
+MY:  2.0305299759e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.2298789024e-01
+MY:  2.1379804611e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.1200108528e-01
+MY:  2.0322418213e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.1461606026e-01
+MY:  2.0514607430e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.1275210381e-01
+MY:  2.0333909988e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.3042511940e-01
+MY:  2.2296690941e-01
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+OPT: 2.1249294281e-01
+MY:  2.0341014862e-01
+m=92000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.2932910919e-01
+MY:  2.1516609192e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.2091603279e-01
+MY:  2.0991206169e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.2362613678e-01
+MY:  2.1213507652e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.3208904266e-01
+MY:  2.2083282471e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.2296094894e-01
+MY:  2.1256589890e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.3134016991e-01
+MY:  2.2005510330e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.2375583649e-01
+MY:  2.0986104012e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.3192310333e-01
+MY:  2.2050285339e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.2068190575e-01
+MY:  2.1009516716e-01
+dgeqrf dlarft dlarfb LAPACK | m = 92000, n = 1000, k =   32
+OPT: 2.3229312897e-01
+MY:  2.2112393379e-01
+m=94000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.2343206406e-01
+MY:  2.1082806587e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.3282408714e-01
+MY:  2.2338199615e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.2138381004e-01
+MY:  2.1308803558e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.3307704926e-01
+MY:  2.2324299812e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.2484588623e-01
+MY:  2.1144604683e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.3553299904e-01
+MY:  2.2257804871e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.2175192833e-01
+MY:  2.1179294586e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.3276782036e-01
+MY:  2.2265601158e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.2165989876e-01
+MY:  2.1181797981e-01
+dgeqrf dlarft dlarfb LAPACK | m = 94000, n = 1000, k =   32
+OPT: 2.3602294922e-01
+MY:  2.2877120972e-01
+m=96000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.0850601196e-01
+MY:  2.7735900879e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.2305812836e-01
+MY:  2.9140686989e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.0800819397e-01
+MY:  2.8856301308e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.2153820992e-01
+MY:  2.8535699844e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.1286096573e-01
+MY:  2.8759002686e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.2112193108e-01
+MY:  2.8826999664e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.1659317017e-01
+MY:  2.8291606903e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.0859112740e-01
+MY:  2.8231096268e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.2888388634e-01
+MY:  2.9768896103e-01
+dgeqrf dlarft dlarfb LAPACK | m = 96000, n = 1000, k =   32
+OPT: 3.0717015266e-01
+MY:  2.7854704857e-01
+m=98000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.4952697754e-01
+MY:  2.3575115204e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.5004005432e-01
+MY:  2.3357391357e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.4880504608e-01
+MY:  2.3563003540e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.3908281326e-01
+MY:  2.2994303703e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.4285507202e-01
+MY:  2.2661304474e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.5096702576e-01
+MY:  2.3579287529e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.3996710777e-01
+MY:  2.2293996811e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.5080394745e-01
+MY:  2.3592185974e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.4100685120e-01
+MY:  2.2376799583e-01
+dgeqrf dlarft dlarfb LAPACK | m = 98000, n = 1000, k =   32
+OPT: 2.5095796585e-01
+MY:  2.3688197136e-01
+m=100000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.3872184753e-01
+MY:  2.2762107849e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.5015711784e-01
+MY:  2.3935699463e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.6540088654e-01
+MY:  2.3605704308e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.5071406364e-01
+MY:  2.4006199837e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.4646902084e-01
+MY:  2.3761987686e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.5039792061e-01
+MY:  2.3985290527e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.3864197731e-01
+MY:  2.2877097130e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.5089001656e-01
+MY:  2.3980998993e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.3843717575e-01
+MY:  2.2933483124e-01
+dgeqrf dlarft dlarfb LAPACK | m = 100000, n = 1000, k =   32
+OPT: 2.4015498161e-01
+MY:  2.2833395004e-01

@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     checkMemory(Cs);
     // Part of the call to dlarfb requires a workspace
     // may be able to refactor it out, but not really worth the effort on a timing test file
-    workMat = (double *) calloc(m * m, sizeof(double));
+    workMat = (double *) calloc(m * k, sizeof(double));
     checkMemory(workMat);
 
     for(i = 0; i < m * n; ++i)
@@ -140,6 +140,16 @@ int main(int argc, char **argv)
     elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
     // print out time of optimized dlarfb
     printf("OPT: %10.10e\n", elapsed_refL);
+    // copy everything back to how it was for Q and C (T should not be touched and we are trusting
+    // the optimized implementers to do this properly)
+    dlacpy_(&aChar, &m, &n, Qs, &m, Q, &m, dummy);
+    dlacpy_(&aChar, &m, &n, Cs, &m, C, &m, dummy);
+    gettimeofday(&tp, NULL);
+    elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    dlarfb_(&lChar, &nChar, &fChar, &cChar, &m, &n, &k, Q, &m, T, &k, C, &m, workMat, &m);
+    gettimeofday(&tp, NULL);
+    elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    printf("REF:  %10.10e\n", elapsed_refL);
     // copy everything back to how it was for Q and C (T should not be touched and we are trusting
     // the optimized implementers to do this properly)
     dlacpy_(&aChar, &m, &n, Qs, &m, Q, &m, dummy);
