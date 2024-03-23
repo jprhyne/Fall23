@@ -3,6 +3,7 @@
 # Fix n and k
 # n is a decently sized number of columns, and k is the blocksize. We are sticking with
 # 32 in this as we are concerned with performance inside dorgqr for dlarfb
+# We will later investigate what the performance looks like for larger sizes of nb
 for (( m=50000; m<= 100000; m+=2000 ))
 do 
     echo "m=$m"

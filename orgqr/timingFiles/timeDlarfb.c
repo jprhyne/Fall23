@@ -144,6 +144,16 @@ int main(int argc, char **argv)
     // the optimized implementers to do this properly)
     dlacpy_(&aChar, &m, &n, Qs, &m, Q, &m, dummy);
     dlacpy_(&aChar, &m, &n, Cs, &m, C, &m, dummy);
+    gettimeofday(&tp, NULL);
+    elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    dlarfb_(&lChar, &nChar, &fChar, &cChar, &m, &n, &k, Q, &m, T, &k, C, &m, workMat, &m);
+    gettimeofday(&tp, NULL);
+    elapsed_refL+=((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
+    printf("REF:  %10.10e\n", elapsed_refL);
+    // copy everything back to how it was for Q and C (T should not be touched and we are trusting
+    // the optimized implementers to do this properly)
+    dlacpy_(&aChar, &m, &n, Qs, &m, Q, &m, dummy);
+    dlacpy_(&aChar, &m, &n, Cs, &m, C, &m, dummy);
     dlacpy_(&uChar, &k, &k, T, &k, Q, &m, dummy);
     gettimeofday(&tp, NULL);
     elapsed_refL=-((double)tp.tv_sec+(1.e-6)*tp.tv_usec);
