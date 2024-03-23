@@ -15,10 +15,10 @@
 #include <string.h>
 #include <sys/time.h>
 
-void checkMemory(void *ptr)
+void checkMemory(void *ptr, char *name, size_t size)
 {
     if (ptr == NULL) {
-        printf("Insufficient Memory. Terminating Execution\n");
+        fprintf(stderr, "Insufficient Memory. Attempted to allocate %ld bytes for array %s\n", size, name);
         exit(1);
     }
 }
@@ -93,15 +93,15 @@ int main(int argc, char **argv)
     T  = (double *) calloc(k * k, sizeof(double));
     C  = (double *) calloc(m * n, sizeof(double));
     Cs  = (double *) calloc(m * n, sizeof(double));
-    checkMemory(Q);
-    checkMemory(Qs);
-    checkMemory(T);
-    checkMemory(C);
-    checkMemory(Cs);
+    checkMemory(Q, "Q", m * n * sizeof(double));
+    checkMemory(Qs, "Qs", m * n *  sizeof(double));
+    checkMemory(T, "T", k * k * sizeof(double));
+    checkMemory(C, "C", m * n * sizeof(double));
+    checkMemory(Cs, "Cs", m * n * sizeof(double));
     // Part of the call to dlarfb requires a workspace
     // may be able to refactor it out, but not really worth the effort on a timing test file
-    workMat = (double *) calloc(m * m, sizeof(double));
-    checkMemory(workMat);
+    workMat = (double *) calloc(m * k, sizeof(double));
+    checkMemory(workMat, "workMat", m * k * sizeof(double));
 
     for(i = 0; i < m * n; ++i)
         *(Q + i) = (double)rand() / (double)(RAND_MAX) - 0.5e+00;
@@ -113,16 +113,16 @@ int main(int argc, char **argv)
     dlacpy_(&aChar, &m, &n, C, &m, Cs, &m, dummy);
 
     tau = (double *) malloc( n * sizeof(double));
-    checkMemory(tau);
+    checkMemory(tau, "tau", n * sizeof(double));
 
     work = (double *) malloc( 1 * sizeof(double));
-    checkMemory(work);
+    checkMemory(work, "work", sizeof(double));
     dgeqrf_(&m, &n, Q, &m, tau, work, &negOne, &info);
     //LAPACKE_dgeqrf_work( LAPACK_COL_MAJOR, m, k, A, lda, tau, work, -1 ); 
     lwork = ((int) work[0]);
     free( work );
     work = (double *) malloc( lwork * sizeof(double));
-    checkMemory(work);
+    checkMemory(work, "work", lwork * sizeof(double));
     
     // Compute the householder reflectors for A
     dgeqrf_(&m, &n, Q, &m, tau, work, &lwork, &info);

@@ -3,7 +3,7 @@
 # Fix n and k
 # n is a decently sized number of columns, and k is the blocksize. We are sticking with
 # 32 in this as we are concerned with performance inside dorgqr for dlarfb
-for (( m=50000; m<= 100000; m+=20000 ))
+for (( m=50000; m<= 100000; m+=2000 ))
 do 
     echo "m=$m"
     echo "Testing file ran 10 times"

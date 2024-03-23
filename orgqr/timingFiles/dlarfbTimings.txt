@@ -1,0 +1,76 @@
+m=50000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 50000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+m=70000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.3121309280e-01
+MY:  2.2356891632e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.3019003868e-01
+MY:  2.2295808792e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.3173785210e-01
+MY:  2.2331690788e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.2986292839e-01
+MY:  2.2567915916e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.2955608368e-01
+MY:  2.2375512123e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.2934198380e-01
+MY:  2.2238898277e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.2917604446e-01
+MY:  2.2267293930e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.3035311699e-01
+MY:  2.2288203239e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.2985601425e-01
+MY:  2.2289800644e-01
+dgeqrf dlarft dlarfb LAPACK | m = 70000, n = 1000, k =   32
+OPT: 2.3294210434e-01
+MY:  2.2807693481e-01
+m=90000
+Testing file ran 10 times
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
+dgeqrf dlarft dlarfb LAPACK | m = 90000, n = 1000, k =   32
+Insufficient Memory. Terminating Execution
