@@ -164,6 +164,9 @@ int main(int argc, char **argv) {
         case 10:
             my_dorgqr_v10_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
+        case 11:
+            my_dorgqr_v11_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
+            break;
         default:
             dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &negOne, &info);
     }
@@ -219,6 +222,10 @@ int main(int argc, char **argv) {
         case 10:
             my_dlarft_ut_(&m, &k, Q, &ldq, tau, Q, &ldq); 
             my_dorgqr_v10_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 11:
+            my_dlarft_ut_(&m, &k, Q, &ldq, tau, Q, &ldq); 
+            my_dorgqr_v11_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
             break;
         default:
             dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
