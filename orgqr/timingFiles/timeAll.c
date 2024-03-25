@@ -4,18 +4,6 @@
 #include <string.h>
 #include <sys/time.h>
 
-#ifdef USE_MKL_BLAS
-    #include <mkl_cblas.h>
-#else
-    #include <cblas.h>
-#endif
-
-#ifdef USE_MKL_LAPACK
-    #include <mkl_lapacke.h>
-#else
-    #include <lapacke.h>
-#endif
-
 double myNorm(int m, int n, double *A, int lda)
 {
     double ret = 0.0;

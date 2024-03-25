@@ -1,0 +1,3 @@
+k=5000
+Computing Q1 and Q2 simultaneously
+Testing file ran 10 times

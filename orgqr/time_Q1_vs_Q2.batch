@@ -1,0 +1,11 @@
+#!/bin/env bash
+# time_Q1_vs_Q2.batch
+# batch job for running time_Q1_vs_Q2.sh on the alderaan cluster
+# Johnathan Rhyne
+#SBATCH --job-name=time_Q1_vs_Q2.sh
+#SBATCH --partition=math-alderaan
+#SBATCH --time=24:00:00
+#SBATCH --ntasks=12
+
+dateString=$(date "+%d.%B.%Y")
+./time_Q1_vs_Q2.sh > "Q1.Vs.Q2.$dateString.txt"

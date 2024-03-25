@@ -4,18 +4,6 @@
 #include <string.h>
 #include <sys/time.h>
 
-#ifdef USE_MKL_BLAS
-    #include <mkl_cblas.h>
-#else
-    #include <cblas.h>
-#endif
-
-#ifdef USE_MKL_LAPACK
-    #include <mkl_lapacke.h>
-#else
-    #include <lapacke.h>
-#endif
-
 double myNorm(int m, int n, double *A, int lda)
 {
     double ret = 0.0;
@@ -119,9 +107,9 @@ int main(int argc, char **argv) {
         printf("\n");
     }
 
-    A  = (double *) calloc(lda * k,sizeof(double));
-    As = (double *) calloc(lda * k, sizeof(double));
-    Q  = (double *) calloc(ldq * n, sizeof(double));
+    double *A  = (double *) calloc(lda * k,sizeof(double));
+    double *As = (double *) calloc(lda * k, sizeof(double));
+    double *Q  = (double *) calloc(ldq * n, sizeof(double));
 
     for(i = 0; i < lda * k; ++i)
         *(A + i) = (double)rand() / (double)(RAND_MAX) - 0.5e+00;
@@ -130,13 +118,13 @@ int main(int argc, char **argv) {
         *(Q + i) = (double)rand() / (double)(RAND_MAX) - 0.5e+00;
 
     dlacpy_(&aChar, &m, &k, A, &lda, As, &lda, dummy);
-    normA = myNorm(m, k, A, lda);
+    double normA = myNorm(m, k, A, lda);
     //info  = LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', m, k, A, lda, As, lda );
     //normA = LAPACKE_dlange_work( LAPACK_COL_MAJOR, 'F', m, k, A, lda, work );
 
-    tau = (double *) malloc( k * sizeof(double));
+    double *tau = (double *) malloc( k * sizeof(double));
 
-    work = (double *) malloc( 1 * sizeof(double));
+    double *work = (double *) malloc( 1 * sizeof(double));
     dgeqrf_(&m, &k, A, &lda, tau, work, &negOne, &info);
     //LAPACKE_dgeqrf_work( LAPACK_COL_MAJOR, m, k, A, lda, tau, work, -1 ); 
     lwork = ((int) work[0]);
