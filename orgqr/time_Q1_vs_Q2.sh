@@ -1,9 +1,9 @@
 #!/bin/env bash
 
 # Fix m and n vary k. 
-m=25000
-n=25000
-for (( k=5000; k<= 25000; k+=2000 ))
+m=10000
+n=$m
+for (( k=1000; k<=$m; k+=200 ))
 do 
     echo "k=$k"
     echo "Computing Q1 and Q2 simultaneously"

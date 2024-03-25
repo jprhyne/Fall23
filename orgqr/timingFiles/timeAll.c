@@ -150,7 +150,6 @@ int main(int argc, char **argv) {
     if (lwork < ((int) work[0])) lwork = ((int) work[0]); 
     free( work );
     if (lwork < n) lwork = n;
-    work = (double *) malloc( lwork * sizeof(double));
     // determining what function to call based on the value of 'version'
     work = (double *) malloc( lwork * sizeof(double));
 
@@ -373,9 +372,9 @@ int main(int argc, char **argv) {
         printf("time = %f   GFlop/sec = %f", elapsed_refL, perform_refL);
         printf("repres  = %5.1e    ortho = %5.1e ", norm_repres_1, norm_orth_1);
     } else if (errorsOnly && !timesOnly) {
-        printf("RF:%10.10e %10.10e", norm_repres_1, norm_orth_1);
+        printf("OLD:%10.10e %10.10e", norm_repres_1, norm_orth_1);
     } else {
-        printf("RF:%10.10e:%10.10e", elapsed_refL, perform_refL);
+        printf("OLD:%10.10e:%10.10e", elapsed_refL, perform_refL);
     }
 
     printf("\n");

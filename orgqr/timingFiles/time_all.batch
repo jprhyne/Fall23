@@ -8,4 +8,4 @@
 #SBATCH --ntasks=12
 
 dateString=$(date "+%d.%B.%Y")
-./time_all.sh > "allStepsTiming.$(dateString).txt"
+./time_all.sh > "allStepsTiming.$dateString.txt"
