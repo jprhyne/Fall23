@@ -11,7 +11,7 @@
          ! Where T is upper triangular, and V is broken further down into
          !                                   V =   ( V1 )
          !                                         ( V2 )
-         ! Where V1 is unit lower triangular and V2 is rectangular
+         ! Where V1 is unit lower triangular (diagonal assumed) and V2 is rectangular
          ! V1 and T start at A(1,1)
 *
 *           Apply H to A(i:m,i+ib:n) from the left

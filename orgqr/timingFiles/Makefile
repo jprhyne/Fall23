@@ -3,7 +3,7 @@ include ../make.inc
 2rObjs := $(patsubst %.f,%.o,$(wildcard ../../org2r/src/*.f))
 objects := $(patsubst %.f,%.o,$(wildcard ../src/*.f))
 
-default: srcFiles timeDlarfb.exe
+default: srcFiles timeDlarfb.exe timeAll.exe
 
 srcFiles:
 	+$(MAKE) -C ../src
@@ -20,6 +20,10 @@ timeDorgqr.exe: timeDorgqr.o $(objects) $(2rObjs)
 
 timeDlarfb.exe: timeDlarfb.o $(objects) $(2rObjs)
 	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
+
+timeAll.exe: timeAll.o $(objects) $(2rObjs)
+	$(FC) $(CFLAGS) $^ $(OPTBLAS) -o $@
+
 # Object file creations
 timeSVD.o: timeSVD.c
 	$(CC) -c $(CFLAGS) -DUSE_AMD=1 $^ -o $@
@@ -28,6 +32,9 @@ timeDorgqr.o: timeDorgqr.c
 	$(CC) -c $(CFLAGS) $^ -o $@
 
 timeDlarfb.o: timeDlarfb.c
+	$(CC) -c $(CFLAGS) $^ -o $@
+
+timeAll.o: timeAll.c
 	$(CC) -c $(CFLAGS) $^ -o $@
 
 clean: 

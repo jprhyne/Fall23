@@ -16,12 +16,22 @@
     #include <lapacke.h>
 #endif
 
+double myNorm(int m, int n, double *A, int lda)
+{
+    double ret = 0.0;
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            double tmp = A[i + j * lda];
+            ret += tmp*tmp;
+        }
+    }
+    return ret;
+}
+
 int main(int argc, char **argv) {
 
     // Local params
     int info, lda, ldq, m, n, k, lwork, nb;
-    double *A, *Q, *As, *tau, *work=NULL;
-    double normA;
     double elapsed_refL, perform_refL;
     struct timeval tp;
     int i, j, version;
@@ -120,7 +130,7 @@ int main(int argc, char **argv) {
         *(Q + i) = (double)rand() / (double)(RAND_MAX) - 0.5e+00;
 
     dlacpy_(&aChar, &m, &k, A, &lda, As, &lda, dummy);
-    normA = dlange_(&fChar, &m, &k, A, &lda, work, dummy);
+    normA = myNorm(m, k, A, lda);
     //info  = LAPACKE_dlacpy_work( LAPACK_COL_MAJOR, 'A', m, k, A, lda, As, lda );
     //normA = LAPACKE_dlange_work( LAPACK_COL_MAJOR, 'F', m, k, A, lda, work );
 
@@ -156,6 +166,15 @@ int main(int argc, char **argv) {
             break;
         case 7:
             my_dorgqr_v7_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
+            break;
+        case 8:
+            my_dorgqr_v8_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
+            break;
+        case 9:
+            my_dorgqr_v9_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
+            break;
+        case 10:
+            my_dorgqr_v10_(&m, &n, &k, Q, &ldq, tau, work, &negOne, &info);
             break;
         default:
             dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &negOne, &info);
@@ -203,6 +222,16 @@ int main(int argc, char **argv) {
         case 7:
             my_dorgqr_v7_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
             break;
+        case 8:
+            my_dorgqr_v8_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 9:
+            my_dorgqr_v9_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
+        case 10:
+            my_dlarft_ut_(&m, &k, Q, &ldq, tau, Q, &ldq); 
+            my_dorgqr_v10_(&m, &n, &k, Q, &ldq, tau, work, &lwork, &info);
+            break;
         default:
             dorgqr_(&m, &n, &k, Q,&ldq, tau, work, &lwork, &info);
     }
@@ -222,7 +251,7 @@ int main(int argc, char **argv) {
     //bl1_dsyrk_blas(CblasColMajor, CblasUpper, CblasTrans, n, m, 1.0e+00, Q, ldq, -1.0e+00, work, n);
     dsyrk_(&uChar, &tChar, &n, &m, &one, Q, &ldq, &dNegOne, work, &n, dummy, dummy);
     //cblas_dsyrk( CblasColMajor, CblasUpper, CblasTrans, n, m, 1.0e+00, Q, ldq, -1.0e+00, work, n );
-    norm_orth_1 = dlange_(&fChar, &n, &n, work, &n, NULL, dummy);
+    norm_orth_1 = myNorm(n, n, work, n);
     //norm_orth_1 = LAPACKE_dlange_work( LAPACK_COL_MAJOR, 'F', n, n, work, n, NULL );
     free( work );
 
@@ -234,7 +263,7 @@ int main(int argc, char **argv) {
     for(i = 0; i < m; ++i)
         for(j = 0; j < k; ++j)
             work[ i+j*m ] -= As[ i+j*lda ];
-    norm_repres_1 = dlange_(&fChar, &m, &k, work, &m, NULL, dummy);
+    norm_repres_1 = myNorm(m, k, work, m);
     //norm_repres_1 = LAPACKE_dlange_work( LAPACK_COL_MAJOR, 'F', m, k, work, m, NULL );
     norm_repres_1 = norm_repres_1 / normA;
     free( work );

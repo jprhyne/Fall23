@@ -1,5 +1,6 @@
 c
 c  This file uses my_dlarft_rec and my_dorgkr inside our loops
+c     Also computes Q2 seperately from Q1
 c
 *> \brief \b DORGQR
 *
@@ -127,7 +128,7 @@ c
 *> \ingroup doubleOTHERcomputational
 *
 *  =====================================================================
-      SUBROUTINE MY_DORGQR_V5( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
+      SUBROUTINE MY_DORGQR_V9( M, N, K, A, LDA, TAU, WORK, LWORK, INFO)
       IMPLICIT NONE
 *
 *  -- LAPACK computational routine --
@@ -153,8 +154,8 @@ c
      $                   LWKOPT, NB, NBMIN, NX
 *     ..
 *     .. External Subroutines ..
-      EXTERNAL             DLARFB, DLARFT, DORG2R, XERBLA, MY_DLARFT_REC, 
-     $                     MY_DORGKR
+      EXTERNAL           DLARFB, DLARFT, DORG2R, XERBLA, MY_DORGKR,
+     $                   MY_DLARFT_UT
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC          MAX, MIN
@@ -185,6 +186,8 @@ c
          INFO = -3
       ELSE IF( LDA.LT.MAX( 1, M ) ) THEN
          INFO = -5
+      ELSE IF( LWORK.LT.MAX( 1, NB ) .AND. .NOT.LQUERY ) THEN
+         INFO = -8
       END IF
       IF( INFO.NE.0 ) THEN
          CALL XERBLA( 'DORGQR', -INFO )
@@ -207,12 +210,13 @@ c
 *
 *        Determine when to cross over from blocked to unblocked code.
 *
+*         NX = MAX( 0, ILAENV( 3, 'DORGQR', ' ', M, N, K, -1 ) )
          NX = 0
          IF( NX.LT.K ) THEN
 *
 *           Determine if workspace is large enough for blocked code.
 *
-            LDWORK = N
+            LDWORK = NB
             IWS = LDWORK*NB
             IF( LWORK.LT.IWS ) THEN
 *
@@ -238,112 +242,110 @@ c
 *
 *     Use unblocked code for the only block.
 *
-*     IF( KK.LT.N )
-*      write(*,*) KK
 *      IF( KK.EQ.0 )
-*     $   CALL DORG2R( M, N, K, A, LDA, TAU, WORK, IINFO )
+*     $   CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
+*     $                TAU( KK+1 ), WORK, IINFO )
       IF( KK.EQ.0 ) THEN
-         IF(K.EQ.N) THEN
-            CALL MY_DLARFT_REC(M, N, A, LDA, TAU, A, LDA)
+         ! Construct T for the whole matrix. Store this in the upper triangular
+         ! part as we will overwrite it anyway.
+         !CALL MY_DLARFT(M, K, A, LDA, TAU, A, LDA)
+         !CALL MY_DORGKR(M, K, A, LDA)
+         ! Now, we need to compute the rows from k to n
+         ! If we happen to have k=n, then we call our new function. This will be
+         ! faster for tall and skinny matrices. Should add a check to make sure
+         ! we are in this case, but for now this is fine for testing purposes
+         IF( K.EQ.N ) THEN
+            CALL MY_DLARFT_UT(M, N, A, LDA, TAU, A, LDA)
             CALL MY_DORGKR(M, N, A, LDA)
          ELSE
-            CALL DORG2R( M, N, K, A, LDA, TAU, WORK, IINFO ) 
+            CALL DORG2R( M-KK, N-KK, K-KK, A( KK+1, KK+1 ), LDA,
+     $                  TAU( KK+1 ), WORK, IINFO )
          END IF
       END IF
 *
       IF( KK.GT.0 ) THEN
+*------------------------------------------------------------------------
+*        First block guaranteed of size NB
+*------------------------------------------------------------------------
          I = KK + 1
          IB = NB
 *
-*           Form the triangular factor of the block reflector
-*           H = H(i) H(i+1) . . . H(i+ib-1)
+*        Form the triangular factor of the block reflector
+*        H = H(i) H(i+1) . . . H(i+ib-1)
 *
+         CALL MY_DLARFT_UT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I),LDA)
 *         CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
 *     $                A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-         CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), LDA)
 *
-*           Apply H to A(i:m,i+ib:n) from the left
+*        Apply H to A(i:m,k+1:n) from the left
 *
 *
 **        W := V2
 *        C1 := V2**T
 *
-*         Since C1 starts as 0, we are using this instead of WORK(IB+1).
-*         This helps us reduce the memory footprint by lowering WORK to
-*         be of only size IB
-*         CALL DLACPY('All', N-K, IB, A(I+IB,I), LDA,WORK(IB+1),LDWORK)
-         DO 36 JJ = K - NB + 1, K
+         DO 36 JJ = KK + 1, K
            DO 26 II = K + 1, N
-              A( JJ, II ) = A( II, JJ)
+              A( JJ, II ) = A( II, JJ )
    26      CONTINUE
    36    CONTINUE
 *
-**              W := W * T**T  or  W * T
-*              C1 := T * C1
-*
-*  old
-*         CALL DTRMM( 'Right', 'Upper', 'Transpose', 'Non-unit', N-K,
-*     $               IB,ONE, WORK, LDWORK, WORK(IB+1), LDWORK )
-*  new
+**        W := W * T**T  or  W * T
+*        C1 := T * C1
          CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit', IB,
      $               N-K,ONE, A(I,I), LDA, A(I,I+IB),LDA )
 *
-**                 C2 := C2 - V2 * W**T
-*                 C2 := C2 - V2 * C1
+**        C2 := C2 - V2 * W**T
+*        C2 := C2 - V2 * C1
 *
-*         CALL DGEMM( 'No transpose', 'Transpose', M-IB-KK, N-K, IB,
-*     $               -ONE, A( I+IB, I ), LDA, WORK(IB+1), LDWORK, ONE,
-*     $               A( I+IB, I+IB ), LDA )
          CALL DGEMM( 'No transpose', 'No transpose', M-IB-KK, N-K, IB,
      $               -ONE, A( I+IB, I ), LDA, A(I,I+IB),LDA, ZERO,
      $               A( I+IB, I+IB ), LDA )
-         do 14 JJ = 1, N-K
-            A(I+IB+JJ-1,I+IB+JJ-1) = 1 + A(I+IB+JJ-1,I+IB+JJ-1)
-   14    continue
+         DO 14 JJ = K + 1, N
+            A(JJ,JJ) = 1 + A(JJ,JJ)
+   14    CONTINUE
 *
-**              W := W * V1**T
-*              C1 := -V1 * C1 
+**        W := W * V1**T
+*        C1 := -V1 * C1 
 *
-*         CALL DTRMM( 'Right', 'Lower', 'Transpose', 'Unit', N-K, IB,
-*     $               ONE, A(I,I), LDA, WORK(IB+1), LDWORK )
          CALL DTRMM( 'Left', 'Lower', 'No transpose', 'Unit', IB, N-K,
      $               -ONE, A(I,I), LDA, A(I,I+IB),LDA )
 *
-**              C1 := -W**T
-*
-*         DO 31 JJ = 1, IB
-*           DO 21 II = 1, N-K
-*             A( I+JJ-1, I+IB+II-1 ) = -WORK( 1+IB + (II-1) +
-*     $          (JJ-1)*LDWORK )
-*   21      CONTINUE
-*   31    CONTINUE
-*
 *        Apply H to rows i:m of current block
 *
-         CALL MY_DORGKR( M-I+1, IB, A(I,I), LDA)
+!         CALL DLACPY('Upper', IB, IB, WORK, LDWORK, A(I,I), LDA)
+         
+         CALL MY_DORGKR(M-I+1, IB, A(I,I), LDA)
 *         CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ), WORK,
 *     $                IINFO )
+
+*
+*        First, we compute the part of Q (Q2) that is to the right of K.
+*        If A was of rank K, then this is an orthogonal basis of the
+*        nullspace of A. Otherwise, this is a subspace of the nullspace of
+*        A
+*
+         CALL COMPUTE_Q2(M, N, K, KI, NB, A, LDA, TAU)
+*        Now, we compute the rest of our Q (Q1).
          DO 50 I = KI + 1, 1, -NB
             IB = NB
 *
 *           Form the triangular factor of the block reflector
 *           H = H(i) H(i+1) . . . H(i+ib-1)
 *
-*            CALL DLARFT( 'Forward', 'Columnwise', M-I+1, IB,
-*     $                   A( I, I ), LDA, TAU( I ), WORK, LDWORK )
-            CALL MY_DLARFT_REC(M-I+1, IB, A(I,I), LDA, TAU(I), 
-     $         A(I,I), LDA)
+            CALL MY_DLARFT_UT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), 
+     $                        LDA)
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
-            CALL MY_DLARFB(M-I+1, N-(I+IB)+1, IB, A(I,I), LDA,
-     $                        A(I,I+IB),LDA)
-
+*
+*           Form  H * C  or  H**T * C  where  C = ( C1=0 )
+*                                                    ( C2=* )
+*
+            CALL MY_DLARFB(M-I+1, K-(I+IB)+1, IB, A(I,I), LDA, 
+     $         A(I,I+IB), LDA)
 *
 *           Apply H to rows i:m of current block
 *
-*            CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ), WORK,
-*     $                   IINFO )
             CALL MY_DORGKR(M-I+1, IB, A(I,I), LDA)
    50    CONTINUE
 *        This checks for if K was a perfect multiple of NB
@@ -356,63 +358,24 @@ c
 *           Form the triangular factor of the block reflector
 *           H = H(i) H(i+1) . . . H(i+ib-1)
 *
-            CALL MY_DLARFT_REC(M-I+1, IB,
-     $                   A( I, I ), LDA, TAU( I ), A(I,I), LDA )
+            CALL MY_DLARFT_UT(M-I+1, IB, A(I,I), LDA, TAU(I), A(I,I), 
+     $         LDA)
 *
 *           Apply H to A(i:m,i+ib:n) from the left
 *
 *
-*              Form  H * C  or  H**T * C  where  C = ( C1=0 )
+*           Form  H * C  or  H**T * C  where  C = ( C1=0 )
 *                                                    ( C2=* )
 *
-*              W := C**T * V  =  (C1**T * V1 + C2**T * V2)  (stored in WORK)
-*
-**              W  := C2**T * V2
-*              C1 := V2**T * C2
-*
-!               CALL DGEMM( 'Transpose', 'No transpose', IB, 
-!     $                        N-I-IB+1, M-I+1-IB,
-!     $                        ONE, A( I+IB, I ), LDA, 
-!     $                        A( I + IB, I + IB ), LDA,
-!     $                        ZERO, A(I,I+IB), LDA )
-*
-**              W  := W * T**T  or  W * T
-*              C1 := T * C1
-*
-!               CALL DTRMM( 'Left', 'Upper', 'No transpose', 'Non-unit',
-!     $                     IB, N-I-IB+1, ONE, A(I,I), LDA, 
-!     $                     A(I,I+IB), LDA )
-*
-*              C := C - V * W**T
-*
-*
-**                 C2 := C2 - V2 * W**T
-*                 C2 := C2 - V2 * C1
-*
-!                  CALL DGEMM( 'No transpose', 'No transpose', M-I-IB+1,
-!     $                        N-I-IB+1, IB,
-!     $                        -ONE, A( I+IB, I ), LDA, A(I,I+IB), LDA,
-!     $                        ONE, A( I+IB, I+IB ), LDA )
-*
-**              W  := W * V1**T
-*              C1 := -V1 * C1
-*
-!               CALL DTRMM( 'Left', 'Lower', 'Non transpose', 'Unit', IB,
-!     $                     N-I-IB+1, -ONE, A(I,I), LDA, A(I,I+IB), LDA )
-
+            CALL MY_DLARFB(M-I+1, K-(I+IB)+1, IB, A(I,I), LDA, 
+     $         A(I,I+IB), LDA)
 *
 *           Apply H to rows i:m of current block
 *
-*            CALL DORG2R( M-I+1, IB, IB, A( I, I ), LDA, TAU( I ),
-*     $                   A(I,I), IINFO )
-            CALL MY_DLARFB(M-I+1, N-(I+IB)+1, IB, A(I,I), LDA,
-     $                        A(I,I+IB),LDA)
             CALL MY_DORGKR(M-I+1, IB, A(I,I), LDA)
-
          END IF
       END IF
 *
-*      WORK( 1 ) = IWS
       RETURN
 *
 *     End of DORGQR
