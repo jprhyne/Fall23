@@ -1,16 +1,13 @@
-*     Cost:
-*     m > n: (2m^3 + 3m^2 + 6mn^2 + 6mn - 5m + 2n^3 -12n^2 + 10n)/6
-*     m = n: (10n^3 - 3n^2 + 5n)/6 
-      RECURSIVE SUBROUTINE MY_DLARFT_UT(M, N, V, LDV, TAU)
+      SUBROUTINE MY_ZLARFT_UT_V2(M, N, V, LDV, TAU)
          ! Arguments
          ! Scalars
          INTEGER           M, N, LDV
          ! Matrix variables
-         DOUBLE PRECISION  V(LDV,*), TAU(N)
+         COMPLEX*16        V(LDV,*), TAU(N)
          ! Local variables
          INTEGER           I,J,K,INFO
          ! Parameters
-         DOUBLE PRECISION ONE, NEG_ONE, ZERO, HALF
+         COMPLEX*16        ONE, NEG_ONE, ZERO, HALF
          PARAMETER(ONE=1.0D+0, HALF=0.5D+0, ZERO = 0.0)
          ! Implementation of the algorithm listed in the following paper
          ! https://www.cs.utexas.edu/users/flame/pubs/p169-joffrain.pdf
@@ -33,12 +30,15 @@
          ! Then 
          ! V = V_2**T * V_2 + V
          ! Compute V = V_1**T * V_1
-         CALL MY_DST3RK(N, V, LDV)
+         CALL MY_ZST3RK(N, V, LDV)
          ! Compute V = V_2**T * V_2 + V
-         CALL DSYRK('Upper', 'Transpose', N, M-N, ONE, V(N+1,1), LDV,
+         CALL ZSYRK('Upper', 'Transpose', N, M-N, ONE, V(N+1,1), LDV,
      $               ONE, V, LDV)
          ! Scales the diagonal by 1/2
-         CALL DSCAL(N, HALF, V(1,1), LDV + 1)
+         DO I = 1, N
+            V(I,I) = TAU(I)
+         END DO
+         !CALL DSCAL(N, HALF, V(1,1), LDV + 1)
          ! Replaces V with T^{-1}
-         CALL DTRTRI('Upper', 'Non unit', N, V, LDV, INFO)
+         CALL ZTRTRI('Upper', 'Non unit', N, V, LDV, INFO)
       END SUBROUTINE

@@ -1,3 +1,4 @@
+c     Cost: 2/3 * (n^3 - n)
       RECURSIVE SUBROUTINE LUMM(N, ALPHA, Q, LDQ)
          ! Scalar Arguments
          INTEGER           N, LDQ
@@ -15,6 +16,11 @@
          ! Parameters
          DOUBLE PRECISION  ONE
          PARAMETER(ONE=1.0D+0)
+
+         ! Early exit if possible
+         IF (N.EQ.0) THEN
+            RETURN
+         END IF
 
 
          ! Q is of the form

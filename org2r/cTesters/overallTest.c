@@ -13,7 +13,16 @@
 
 double computePerform_refL(double m, double n, double k, double elapsed_refL)
 {
-    double numerator = 4.0/3.0*k*k*k - k*k*(2*m+2*n+3) + k*m*(4*n+3);
+    double numerator = 4.0/3.0*k*k*k - k*k*(2.0*m+2.0*n+3.0) + k*m*(4.0*n+3.0);
+    return (numerator)/(elapsed_refL*1.0e+9);
+}
+double computeKPerform_refL(double m, double n, double elapsed_refL)
+{
+    double kr = 2.0*m*n*n + n*n - n;
+    kr /= 2.0;
+    double ut = 2.0*m*m*m + 3.0*m*m + 6.0*m*n*n + 6.0*m*n - 5.0*m + 2.0*n*n*n - 12.0*n*n + 10.0*n;
+    ut /= 6;
+    double numerator = kr + ut;
     return (numerator)/(elapsed_refL*1.0e+9);
 }
 
@@ -163,9 +172,9 @@ int main(int argc, char *argv[]) {
     // Compute work = Q**T * Q - I
     dsyrk_(&uChar, &tChar, &k, &m, &one, Q, &ldq, &negOne, work, &k);
     // Compute the norm of work
-    for (i=0; i < m; i++) {
-        for (j=0; j < n; j++) {
-            tmp = work[i + j*m] * work[i + j*m];
+    for (i=0; i < k; i++) {
+        for (j=0; j < k; j++) {
+            tmp = work[i + j*k] * work[i + j*k];
             norm_orth_1 += tmp;
         }
     }
@@ -192,12 +201,12 @@ int main(int argc, char *argv[]) {
     norm_repres_1 /= normA;
 
     // Compute 'performance'
-    // The numerator was computed by me using reference routines, and counting operations
-    perform_refL = computePerform_refL((double) m, (double) n, (double) k, elapsed_refL);
+    // This is the performance of our algorithm. It is a much different algorithm than 
+    perform_refL = computeKPerform_refL((double) m, (double) n, elapsed_refL);
     if(!timesOnly) {
         printf("my_dorgkr: perf = %f time = %f repres = %5.1e ortho = %5.1e", perform_refL, elapsed_refL, norm_repres_1, norm_orth_1);
     } else {
-        printf("k:%10.10e:%10.10e", elapsed_refL, perform_refL);
+        printf("k: %10.10e:%10.10e", elapsed_refL, perform_refL);
     }
     printf("\n");
 

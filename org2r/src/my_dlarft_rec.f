@@ -1,3 +1,5 @@
+c     Cost: m > n: 1/6 * (n^2-1)(2m+n)
+c           m = n: 1/2 * (n^3-n)
       RECURSIVE SUBROUTINE MY_DLARFT_REC(M, N, V, LDV, TAU, T, LDT)
          ! Arguemnts
          ! Scalars
@@ -66,13 +68,10 @@
 
          ! Compute T_1
          CALL MY_DLARFT_REC(M, K, V, LDV, TAU, T, LDT)
-         !CALL DLARFT('Forward', 'Column', M, K, V, LDV, TAU, T, LDT)
 
          ! Compute T_2
          CALL MY_DLARFT_REC(M-K, N-K, V(K+1,K+1), LDV, TAU(K+1),
      $         T(K+1,K+1), LDT)
-         !CALL DLARFT('Forward', 'Column', M-K, N-K, V(K+1,K+1), LDV,
-*     $         TAU(K+1), T(K+1,K+1), LDT)
 
          ! Compute T_3 
          ! T_3 = V_{2,1}^\top

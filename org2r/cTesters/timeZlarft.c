@@ -4,18 +4,13 @@
 #include <string.h>
 #include <sys/time.h>
 #include <math.h>
-double computeRecPerf(double time, double m, double n)
+#include <complex.h>
+// TODO: determine the operation count for larft
+double computePerf(double time, int m, int n) 
 {
-    double rec = ((double) n * (double) n - 1.0) * (2.0 * (double) m + (double) n);
-    rec /= 6.0;
-    return rec / (time*1.0e+9);
-}
-double computeUTPerf(double time, double m, double n) 
-{
-    //  (2m^3 + 3m^2 + 6mn^2 + 6mn - 5m + 2n^3 -12n^2 + 10n)/6 
-    double ut = 2.0*m*m*m + 3.0*m*m + 6.0*m*n*n + 6.0*m*n - 5.0*m + 2.0*n*n*n - 12.0*n*n + 10.0*n;
-    ut /= 6.0;
-    return ut / (time*1.0e+9);
+    double opCount = (double) n * ((double) n - 1.0) * (6.0 * (double) m - 2.0 * (double) n + 7);
+    opCount = opCount / 6.0;
+    return opCount / (time*1.0e+9);
 }
 // Compute the orthogonality norm
 // ||Q**T * Q - I||
@@ -33,9 +28,9 @@ double computeOrthNorm(int m, int n, double *Q)
     int dummy = 0;
     
     // Set work to be I
-    dlaset_(&aChar, &n, &n, &zero, &one, work, &n, dummy);
+    zlaset_(&aChar, &n, &n, &zero, &one, work, &n, dummy);
     // Compute work = Q**T * Q - I
-    dsyrk_(&uChar, &tChar, &n, &m, &one, Q, &m, &negOne, work, &n);
+    zsyrk_(&uChar, &tChar, &n, &m, &one, Q, &m, &negOne, work, &n);
     // Compute the norm of work
     double ret = 0.0;
     for (int i = 0; i < n * n; i++)
@@ -208,7 +203,7 @@ int main(int argc, char *argv[]) {
     // Store this value 
     double refTime = elapsed_refL;
     // Compute the number of flops
-    double refFlop = computeRecPerf(refTime, (double) m, (double) n);
+    double refFlop = computePerf(refTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -235,7 +230,7 @@ int main(int argc, char *argv[]) {
     // Store this value 
     double optTime = elapsed_refL;
     // Compute the number of flops
-    double optFlop = computeRecPerf(optTime, (double) m, (double) n);
+    double optFlop = computePerf(optTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -262,7 +257,7 @@ int main(int argc, char *argv[]) {
     // Store this value 
     double recTime = elapsed_refL;
     // Compute the number of flops
-    double recFlop = computeRecPerf(recTime, (double) m, (double) n);
+    double recFlop = computePerf(recTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V
@@ -289,7 +284,7 @@ int main(int argc, char *argv[]) {
     // Store this value 
     double utTime = elapsed_refL;
     // Compute the number of flops
-    double utFlop = computeUTPerf(utTime, (double) m, (double) n);
+    double utFlop = computePerf(utTime, m, n);
 
     // testing if T is valid
     // Copy T into the upper triangular part of V

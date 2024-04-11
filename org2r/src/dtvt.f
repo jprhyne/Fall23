@@ -22,6 +22,7 @@
 *
 *
 *
+*     Cost: (2n**3 + 3n**2 -5n) / 6
 
       RECURSIVE SUBROUTINE DTVT(N, Q, LDQ)
 *
@@ -42,8 +43,8 @@
 *
 *        Local parameters
 *
-         DOUBLE PRECISION ONE, ZERO
-         PARAMETER(ONE=1.0d+0, ZERO=0.0d+0)
+         DOUBLE PRECISION ONE
+         PARAMETER(ONE=1.0d+0)
 *
 *        Beginning of executable statements
 *

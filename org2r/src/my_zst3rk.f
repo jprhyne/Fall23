@@ -14,16 +14,15 @@ c                 assumed to contain only 0's above the diagonal.
 c              On output: the upper and diagonal part of V will contain the
 c                 product.
 c  LDV (in)    - leading dimension of V
-c     Cost: (2m^3 + 3m^2 -5m)/6
-      RECURSIVE SUBROUTINE MY_DST3RK(M, V, LDV)
+      RECURSIVE SUBROUTINE MY_ZST3RK(M, V, LDV)
          ! Scalar arguments
          INTEGER           M, LDV
          ! Array arguments
-         DOUBLE PRECISION  V(LDV,*)
+         COMPLEX*16        V(LDV,*)
          ! Local variables
          INTEGER           K, INFO, I, J
          ! Parameters
-         DOUBLE PRECISION  ONE, ZERO
+         COMPLEX*16        ONE, ZERO
          PARAMETER(ONE=1.0D+0, ZERO=0.0D+0)
          ! External functions
          EXTERNAL DSYRK, DTRMM
@@ -33,9 +32,9 @@ c     Cost: (2m^3 + 3m^2 -5m)/6
          !     |V_11 0   |
          !     |V_21 V_22|
          !     |---------|
-         ! V_11 \in \R^{K\times K}
-         ! V_21 \in \R^{M-K\times K}
-         ! V_22 \in \R^{M-K\times M-K}
+         ! V_11 \in \C^{K\times K}
+         ! V_21 \in \C^{M-K\times K}
+         ! V_22 \in \C^{M-K\times M-K}
          ! Writing out the multiplication using this break down, we get
          ! V**T * V = |---------| ** T |---------|
          !            |V_11 0   |      |V_11 0   |
@@ -69,8 +68,8 @@ c     Cost: (2m^3 + 3m^2 -5m)/6
          ! Compute K
          K = M / 2
          ! Compute V_11
-         CALL MY_DST3RK(K, V(1,1), LDV)
-         CALL DSYRK('U', 'T', K, M-K, ONE, V(K+1,1), LDV, ONE, 
+         CALL MY_ZST3RK(K, V(1,1), LDV)
+         CALL ZSYRK('U', 'T', K, M-K, ONE, V(K+1,1), LDV, ONE, 
      $               V(1,1), LDV)
          ! Compute C_12
          ! Copy over V_21**T. This may be able to be moved to be the user's
@@ -82,11 +81,11 @@ c     Cost: (2m^3 + 3m^2 -5m)/6
                V(J,I) = V(I,J)
             END DO
          END DO
-         CALL DTRMM('R', 'L', 'N', 'U', K, M-K, ONE, V(K+1, K+1), LDV, 
+         CALL ZTRMM('R', 'L', 'N', 'U', K, M-K, ONE, V(K+1, K+1), LDV, 
      $               V(1, K+1), LDV)
 c         CALL DTRMMOOP('R', 'U', K, N-K, V(K+1, 1), LDV, V(K+1,K+1),
 c     $               LDV, BETA, C(1, K+1), LDC, INFO)
          ! Compute C_22
-         CALL MY_DST3RK(M-K, V(K+1, K+1), LDV)
+         CALL MY_ZST3RK(M-K, V(K+1, K+1), LDV)
 
       END SUBROUTINE

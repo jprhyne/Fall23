@@ -1,7 +1,4 @@
-*     Cost:
-*     m > n: (2m^3 + 3m^2 + 6mn^2 + 6mn - 5m + 2n^3 -12n^2 + 10n)/6
-*     m = n: (10n^3 - 3n^2 + 5n)/6 
-      RECURSIVE SUBROUTINE MY_DLARFT_UT(M, N, V, LDV, TAU)
+      RECURSIVE SUBROUTINE MY_DLARFT_UT_V2(M, N, V, LDV, TAU)
          ! Arguments
          ! Scalars
          INTEGER           M, N, LDV
@@ -38,7 +35,10 @@
          CALL DSYRK('Upper', 'Transpose', N, M-N, ONE, V(N+1,1), LDV,
      $               ONE, V, LDV)
          ! Scales the diagonal by 1/2
-         CALL DSCAL(N, HALF, V(1,1), LDV + 1)
+         DO I = 1, N
+            V(I,I) = TAU(I)
+         END DO
+         !CALL DSCAL(N, HALF, V(1,1), LDV + 1)
          ! Replaces V with T^{-1}
          CALL DTRTRI('Upper', 'Non unit', N, V, LDV, INFO)
       END SUBROUTINE

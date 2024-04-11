@@ -1,8 +1,8 @@
 #!/bin/env bash
 
 # Fix m and vary n=k. 
-m=10000
-for (( k=1000; k<=$m; k+=200 ))
+m=100000
+for (( k=1; k<=2048; k*=2 ))
 do 
     n=$k
     echo "n=$n"
