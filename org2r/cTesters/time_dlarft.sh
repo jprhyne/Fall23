@@ -10,7 +10,7 @@ done
 
 # fix m and vary n
 m=500000
-for (( n=32; n<3201; n+=32 ))
+for (( n=1; n<=2048 ; n*=2 ))
 do
     echo "n=$n"
     echo "Teting file ran 10 times"
