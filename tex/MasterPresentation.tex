@@ -1,0 +1,254 @@
+\documentclass[12pt]{beamer}
+\title{Optimized Computation of the Q Factor in LAPACK}
+\author{Johnathan Rhyne\\Advised by: Julien Langou}
+\institute{University of Colorado Denver}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multicol}
+\usepackage{environ}
+\date{\today}
+
+\newcommand{\customframefont}[1]{
+\setbeamertemplate{itemize/enumerate body begin}{#1}
+\setbeamertemplate{itemize/enumerate subbody begin}{#1}
+}
+
+\NewEnviron{framefont}[1]{
+\customframefont{#1} % for itemize/enumerate
+{#1 % For the text outside itemize/enumerate
+\BODY
+}
+\customframefont{\normalsize}
+}
+
+
+%---------------%
+% Abstract:     %
+%---------------%
+% Computing the Q Factor is an important operation for some applications and end users, so 
+%  we aim to demonstrate new algorithms can speed up the performance of these operations for
+%  end users. We implement existing algorithms 
+%  originally developed by [insert authors here]. We see performance improvements on
+%  the order of [insert rought value here] in comparison to the reference LAPACK 
+%  computations and see similar performance in many cases as the optimized implementation
+%  for AMD (AOCL). Using these schemes we not only see an improvement in execution time,
+%  but lowers the memory footprint for the main driver algorithm.
+%
+%
+%
+
+\begin{document}
+    \begin{frame}
+        \titlepage
+    \end{frame}
+    % Table of contents. Can be helpful for navigating after the fact
+    \begin{framefont}{\small}
+    \begin{frame}
+        \frametitle{Overview}
+        \begin{multicols}{2}
+            \tableofcontents
+        \end{multicols}
+    \end{frame}
+    \end{framefont}
+    \section{Preliminaries}
+    \begin{frame}
+        %
+        %LAPACK stands for Linear Algebra PACKage, which provides a suite of routines to 
+        %perform many linear algebra operations including but not limited to:
+        %
+        \frametitle{What is LAPACK}
+        LAPACK provides interfaces for:
+        \begin{enumerate}
+            \item Matrix multiplication
+            \item Solving linear systems of equations
+            \item Factorizing matrices
+        \end{enumerate}
+        and more!
+        %
+        %We provide the interface and then set a baseline for chip vendors like INTEL and AMD to either package
+        %or beat themselves.
+        %
+    \end{frame}
+    \begin{frame}
+        \frametitle{Brief Linear Algebra Review}
+        Householder reflectors are a way to to represent a matrix as a product of rank $1$ updates of the form
+        $$
+            \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_k v_kv_k^\top\right) = I - VTV^\top
+        $$
+        Routines that use this\footnote{Collected by listing some functions found on the caller graph of DLARFT found \textcolor{blue}{\href{https://netlib.org/lapack/explore-html//d7/d0d/group__larft_ga20e5a4f351b3ca7d30078547e55884f5_ga20e5a4f351b3ca7d30078547e55884f5_icgraph_org.svg}{here}}}
+        \begin{itemize}
+            \item SVD *GESVD
+            \item Hessenberg Reduction *GEBRD
+            \item QR Factorization *GEQRF
+        \end{itemize}
+        % This is just a scheme that we can adopt via other methods. One alternative is for Modified Gram-Schmidt (MGS) with \tau_i = 1
+    \end{frame}
+    \section{DORGQR Overview}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Existing Behavior}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Places for Optimization}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \section{Main Driver Algorithm}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Saving Flops on first iteration}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Saving Memory on remaining iterations}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \section{Computation of T}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Existing Behavior}
+    \begin{frame}
+        \frametitle{LAPACK Implementation}
+        % T upper triangular
+        % Mention V is unit lower triangular in practice
+        % At a high level, what the current dlarft does is compute T one column at a time.
+        The algorithm for DLARFT is given by\footnote{Taken from the comments of DLARFT found \textcolor{blue}{\href{https://netlib.org/lapack/explore-html//dd/daa/dlarft_8f_source.html}{here}}\\\,}:
+        \begin{algorithmic}
+            \For{Each column of $V$}
+                \State $T(1:i-1,i) = -\tau_i V(:,1:i-1)^\top * V(:,i)$
+                \State $T(1:i-1,i) = T(1:i-1,1:i-1) * T(1:i-1,i)$
+                \State $T(i,i) = \tau_i$
+            \EndFor
+        \end{algorithmic}
+
+        % As we can see above, we are doing a bunch of matrix-vector operations. This leads to two kinds of improvements
+        % The first being in restructuring the code to be recursive as this scheme can lead to performance gains
+        % particularly when we have many more rows than columns
+    \end{frame}
+    \subsection{Recursive LARFT}
+    \begin{frame}
+        \frametitle{Recursive Implementation}
+        % In order to motivate the recursive formulation, we notice that if we had a way to collect these
+        % T values for the first l columns and the remaining, we want to do the following
+        If we collect only some of the reflectors on the first and second half, we get
+        \begin{align*}
+            &\,(I - V_1T_{1,1}V_1^\top)(I - V_2T_{2,2}V_2^\top) \\
+            &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1T_{1,1}V_1^\top V_2T_{2,2}V_2^\top
+        \end{align*}
+        Can be rewritten as:
+        $$
+            I - VTV^\top
+        $$
+        where:
+        % Rewrite the T with indices
+        % Write T out 
+        % Then, if we define T_3 and V as follows, we can recover above!
+        \begin{align*}
+            T_{1,2} &= -T_{1,1}V_1^\top V_2T_{2,2} \\
+            V &= \begin{bmatrix}
+                V_1 & V_2
+            \end{bmatrix}\\
+            T &= \begin{bmatrix}
+                T_{1,1} & T_{1,2} \\
+                0       & T_{2,2}
+            \end{bmatrix}
+        \end{align*}
+    \end{frame}
+    \subsection{Matrix Operation LARFT}
+    \begin{frame}
+        \frametitle{Matrix Operation Implementation}
+        % Add proper citation to these
+        Based on the work done by Joffrain and et. al. \footnote{Accumulating Householder Transformations, Revisited} and Puglisi \footnote{Modification of the Householder method based on the compact wy representation}
+        \\\,\\
+        \begin{algorithmic}
+            \State $T = V^\top V$ (Only upper triangular part)
+            \State Scale the diagonal by $\frac{1}{2}$.
+            \State $T = T^{-1}$.
+        \end{algorithmic}
+        \,\\\,\\
+        For more details about why this works, see either Theorem 2 from Joffrain et. al. or the algorithm from Puglisi
+    \end{frame}
+    \subsection{Numerical Experiments}
+    \begin{frame}
+        \frametitle{Numerical Results}
+        We ran the following tests on the Alderaan\footnote{Specifications for the cluster can be found 
+        \textcolor{blue}{\href{https://ccm-docs.readthedocs.io/en/latest/alderaan\#hardware}{here}}\\\,} 
+        cluster here at UC Denver\\
+        % put pictures here of just the times.
+        \begin{center}
+        %\includegraphics[width=.4\textwidth]{figs/dlarftNBTime.pdf}
+        %\includegraphics[width=.4\textwidth]{figs/dlarftNVaryTime.pdf}
+        \end{center}
+    \end{frame}
+    %\section{Future work}
+    %\begin{frame}
+    %    \frametitle{Future work/open questions for Matrix Operation Based}
+    %    \begin{itemize}
+    %        \item Complex arithmetic
+    %        \item Stability
+    %    \end{itemize}
+    %\end{frame}
+    \section{DLARFB}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Existing behavior}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{New Behavior}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Flop Comparison}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Memory reduction}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \section{DORG2R}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{What it is supposed to do}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Existing Behavior}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Note about optimized behavior (AOCL)}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{``Blocked'' equivalent}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \section{DORGKR}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Algorithm Overview}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Placement in main driver}
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+    \subsection{Numerical Experiments}
+    % Dummy frame used for ease of copy and pasting
+    % Complex?
+    \begin{frame}
+        \frametitle{a}
+    \end{frame}
+\end{document}
