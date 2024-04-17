@@ -186,7 +186,7 @@
     \end{frame}
     \subsection{Recursive LARFT}
     \begin{frame}
-        \frametitle{Recursive DLARFT}
+        \frametitle{DLARFT\_REC}
         So instead of computing one column at a time, we can do many at once. We call this the recursive implementation.
         We break up $T$ like so
         $$
@@ -253,7 +253,7 @@
     \end{frame}
     \subsection{Matrix Operation LARFT}
     \begin{frame}
-        \frametitle{Matrix Operation Implementation}
+        \frametitle{DLARFT\_MAT}
         % Add proper citation to these
         Based on the work done by Joffrain and et. al. \footnote{Accumulating Householder Transformations, Revisited} and Puglisi \footnote{Modification of the Householder method based on the compact wy representation}
         \\\,\\
@@ -290,7 +290,7 @@
         \end{aligned}
         $$
         Even though in both of our new versions, we have more operations, these are almost all on the order of $n^3$, 
-        which we assume constant due to the structure.
+        which we assume is a constant.
         % Roughly 10k more operations, which is nothing for modern machines. We are on fractions of a second with this
         %   number
     \end{frame}
@@ -426,20 +426,32 @@
     \subsection{Numerical Experiments}
     \begin{frame}
         \frametitle{Comparison of DORGKR to DORG2R}
+        %more improvement from the fact that we are blocking and using matrix-matrix operations,
+        %which are much faster in practice.
     \end{frame}
     \subsection{Computational Cost}
     \begin{frame}
         \frametitle{Floating Point Operation Cost}
         Assuming we have $V\in\R^{m\times n}$ and $T\in\R^{n\times n}$ our costs are 
-        \begin{align*}
-            \text{DORG2R: }&\, \dfrac{4}{3}\\
-            \text{DORGKR: }&\, \dfrac{2mn^2 + n^2 - n}{2}
-        \end{align*}
+        $$
+        \begin{aligned}
+            % Note: This is only true for the k = n case for DORG2R
+            \text{DORG2R: }&\, \dfrac{12mn^2 - 6mn -4n^3 +9n^2 - 11n}{6} &\approx 2mn^2\\
+            \text{DORGKR: }&\, \dfrac{2mn^2 + n^2 - n}{2} &\approx mn^2
+        \end{aligned}
+        $$
+        We see an improvement for a factor of $2$, which is non-negligbile, but we should note that the sizes
+        used within our routine are relatively small, so we won't see this improvement much when we put it all together
+
+        
     \end{frame}
     \section{Putting it all together}
     \begin{frame}
         \frametitle{My DORGQR vs Existing DORGQR} 
         When putting all the above pieces together, we see the following performance
+
+        We omit the FLOP counts for these routines as they introduce another variable and another question that we don't
+        have time to discuss in detail. % vary m=n, vary k vs vary m, vary n=k
     \end{frame}
     \section{References}
     \begin{frame}
