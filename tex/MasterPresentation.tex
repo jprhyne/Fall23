@@ -1,3 +1,5 @@
+% Missing putting everything together
+% Add at the very end comparing ref_qr to new_qr
 \documentclass[12pt]{beamer}
 \title{Optimized Computation of the Q Factor in LAPACK}
 \author{Johnathan Rhyne\\Advised by: Julien Langou}
@@ -6,6 +8,8 @@
 \usepackage{algpseudocode}
 \usepackage{multicol}
 \usepackage{environ}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
 \date{\today}
 
 \newcommand{\customframefont}[1]{
@@ -99,8 +103,9 @@
         \frametitle{Basic Algorithm}
             In order to compute this matrix, we can do the following.\\\,\\
         \begin{algorithmic}[1]
-            \For{Each column of $V$ denoted $v_i$}
-            \State Apply $I-\tau_iv_iv_i^\top$ to the trailing columns of $Q$
+            \State Initialize $Q$ to $I$.
+            \For{Each column of $V$ denoted $v_i$ from $i=n$ to $1$}
+            \State Apply $I-\tau_iv_iv_i^\top$ to $Q$ from the left
             \EndFor
         \end{algorithmic}\,\\
         This method will give us the answer by applying all of our reflectors one after the other. But, we can make this 
@@ -132,28 +137,8 @@
         \end{enumerate}
     \end{frame}
     \section{Computation of T}
-    \subsection{Existing Behavior}
     \begin{frame}
-        \frametitle{LAPACK Implementation}
-        % T upper triangular
-        % Mention V is unit lower triangular in practice
-        % At a high level, what the current dlarft does is compute T one column at a time.
-        The algorithm for DLARFT is given by\footnote{Taken from the comments of DLARFT found \textcolor{blue}{\href{https://netlib.org/lapack/explore-html//dd/daa/dlarft_8f_source.html}{here}}\\\,}:
-        \begin{algorithmic}[1]
-            \For{Each column of $V$}
-                \State $T(1:i-1,i) = -\tau_i V(:,1:i-1)^\top * V(:,i)$
-                \State $T(1:i-1,i) = T(1:i-1,1:i-1) * T(1:i-1,i)$
-                \State $T(i,i) = \tau_i$
-            \EndFor
-        \end{algorithmic}
-
-        % As we can see above, we are doing a bunch of matrix-vector operations. This leads to two kinds of improvements
-        % The first being in restructuring the code to be recursive as this scheme can lead to performance gains
-        % particularly when we have many more rows than columns
-    \end{frame}
-    \subsection{Recursive LARFT}
-    \begin{frame}
-        \frametitle{Recursive Implementation}
+        \frametitle{Main DLARFT idea}
         % In order to motivate the recursive formulation, we notice that if we had a way to collect these
         % T values for the first l columns and the remaining, we want to do the following
         If we collect only some of the reflectors on the first and second half, we get
@@ -179,6 +164,92 @@
                 0       & T_{2,2}
             \end{bmatrix}
         \end{align*}
+    \end{frame}
+    \subsection{Existing Behavior}
+    \begin{frame}
+        \frametitle{LAPACK Implementation}
+        % T upper triangular
+        % Mention V is unit lower triangular in practice
+        % At a high level, what the current dlarft does is compute T one column at a time.
+        The algorithm for DLARFT is given by\footnote{Taken from the comments of DLARFT found \textcolor{blue}{\href{https://netlib.org/lapack/explore-html//dd/daa/dlarft_8f_source.html}{here}}\\\,}:
+        \begin{algorithmic}[1]
+            \For{Each column of $V$}
+                \State $T(1:i-1,i) = -\tau_i V(:,1:i-1)^\top * V(:,i)$
+                \State $T(1:i-1,i) = T(1:i-1,1:i-1) * T(1:i-1,i)$
+                \State $T(i,i) = \tau_i$
+            \EndFor
+        \end{algorithmic}
+
+        % As we can see above, we are doing a bunch of matrix-vector operations. This leads to two kinds of improvements
+        % The first being in restructuring the code to be recursive as this scheme can lead to performance gains
+        % particularly when we have many more rows than columns
+    \end{frame}
+    \subsection{Recursive LARFT}
+    \begin{frame}
+        \frametitle{Recursive DLARFT}
+        So instead of computing one column at a time, we can do many at once. We call this the recursive implementation.
+        We break up $T$ like so
+        $$
+            T = \begin{bmatrix} T_{1,1} & T_{1,2} \\ 0 & T_{2,2} \end{bmatrix}
+        $$
+        \begin{algorithmic}[1]
+            \State Compute $T_{1,1}$ 
+            \State Compute $T_{2,2}$ 
+            \State $T_{1,2} = V_1^\top V_2$
+            \State $T_{1,2} = -T_{1,1}T_{1,2}$
+            \State $T_{1,2} = T_{1,2}T_{2,2}$
+        \end{algorithmic}
+        Note: the computations of $T_{1,1}$ and $T_{2,2}$ are calls to this routine again on a smaller subproblem. 
+        We omit a precise formulation of this for sake of exposition, but our terminating case is setting the diagonal
+        to the $\tau$ vector.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Visual Representation Of Recursion}
+        \begin{tikzpicture}
+            \draw  (4,4) % Top right
+                -- (4,0) % bottom right
+                -- (0,4) % top left
+                -- cycle;
+            \draw  (2,4)
+                -- (2,2)
+                -- (4,2);
+            \node at (1.333,3.333) {$T_{1,1}$};
+            \node at (3,3) {$T_{1,2}$};
+            \node at (3.333,1.333) {$T_{2,2}$};
+            \draw[->] (5,2) -- (6,2);
+            \draw (7, 4) -- (11,4) -- (11, 0) -- cycle;
+            \draw[fill=blue] (7, 4) -- (8.5, 4) -- (8.5, 2.5) -- cycle;
+            \draw[fill=orange]  (8.5,4) -- (10,4) -- (10,2.5) -- (8.5,2.5) -- cycle;
+            \draw[fill=blue] (8.5,2.5) -- (10, 2.5) -- (10, 1) -- cycle;
+            \draw[fill=orange] (10,2.5) -- (11,2.5) -- (11,1) -- (10,1) -- cycle;
+            \draw[fill=blue] (10,1) -- (11,1) -- (11,0) -- cycle;
+            \draw[fill=black] (10,4) -- (11,4) -- (11,2.5) -- (10,2.5) -- cycle;
+        \end{tikzpicture}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Visual Representation Of Terminating Case}
+        \begin{tikzpicture}
+            \draw  (4,4) % Top right
+                -- (4,0) % bottom right
+                -- (0,4) % top left
+                -- cycle;
+            \draw  (2,4)
+                -- (2,2)
+                -- (4,2);
+            \node at (1.333,3.333) {$T_{1,1}$};
+            \node at (3,3) {$T_{1,2}$};
+            \node at (3.333,1.333) {$T_{2,2}$};
+            \draw[->] (5,2) -- (6,2);
+            \draw (7, 4) -- (11,4) -- (11, 0) -- cycle;
+            \draw[fill=blue] (7,4) -- (7.5,4) -- (7.5,3.5) -- cycle;
+            \draw[fill=blue] (7.5,3.5) -- (8.0, 3.5) -- (8.0, 3.0) -- cycle;
+            \draw[fill=blue] (8.0,3.0) -- (8.5, 3.0) -- (8.5, 2.5) -- cycle;
+            \draw[fill=blue] (8.5,2.5) -- (9, 2.5) -- (9, 2) -- cycle;
+            \draw[fill=blue] (9,2) -- (9.5, 2) -- (9.5, 1.5) -- cycle;
+            \draw[fill=blue] (9.5,1.5) -- (10, 1.5) -- (10, 1) -- cycle;
+            \draw[fill=blue] (10,1) -- (10.5, 1) -- (10.5, .5) -- cycle;
+            \draw[fill=blue] (10.5, .5) -- (11, .5) -- (11, 0) -- cycle;
+        \end{tikzpicture}
     \end{frame}
     \subsection{Matrix Operation LARFT}
     \begin{frame}
@@ -213,13 +284,15 @@
         For these two different versions, we get the following computation cost for $V\in\R^{m\times n}$ and  $T\in\R^{n\times n}$
         $$
         \begin{aligned}
-            \text{DLARFT: }&\,  \frac{2mn^2 + n^3 - 2m - n}{6}&\approx \frac{mn^2}{3}\\
-            \text{DLARFT\_REC: }&\, \frac{2mn^2 + n^3 - 2m - n}{6}&\approx \frac{mn^2}{3}\\
+            \text{DLARFT: }&\,      \frac{6mn^2 - 6mn -4n^3 +6n^2 - 2n}{6}&\approx mn^2\\
+            \text{DLARFT\_REC: }&\, \frac{6mn^2 - 6mn -2n^3 +3n^2 -  n}{6}&\approx mn^2\\
             \text{DLARFT\_MAT: }&\, \frac{6mn^2 + 6mn +4n^3 -9n^2 + 5n}{6}&\approx mn^2 
         \end{aligned}
         $$
-        Even though we have more operations in the last version, we still see execution speeds on a similar level
-        as recursive as we are using highly optimized BLAS routines for most of these computations.
+        Even though in both of our new versions, we have more operations, these are almost all on the order of $n^3$, 
+        which we assume constant due to the structure.
+        % Roughly 10k more operations, which is nothing for modern machines. We are on fractions of a second with this
+        %   number
     \end{frame}
     %\end{framefont}
     \section{DLARFB}
@@ -235,10 +308,10 @@
                 V_1\\
                 V_2
             \end{bmatrix} \qquad
-            C = \begin{bmatrix}
+            C\footnote{We will also have two specialized routines for when $C_1 = 0$ and one with $C_1=0$ and $C_2=I$} = \begin{bmatrix}
                 C_1\\
                 C_2
-            \end{bmatrix}
+            \end{bmatrix}.
         $$
     \end{frame}
     \begin{frame}
@@ -292,22 +365,22 @@
     \section{Main Driver Algorithm}
     \subsection{Saving Flops on first iteration}
     \begin{frame}
-        \frametitle{Final Savings}
-        If we refer back to the algorithm of DLARFB, we can take advantage in our first step having $C_2=I$. So 
+        \frametitle{Initial Savings}
+        If we refer back to the algorithm of DLARFB, we can take advantage in our first step having $C_1 = 0$ and $C_2=I$. So 
         the first step can be rewritten as
         \begin{algorithmic}[1]
             \State $C_1 = TV_2^\top$
             \State $C_2 = C_2 - V_2C_1$
             \State $C_1 =     - V_1C_1$
         \end{algorithmic}
-        This saves a DGEMM call and thus saving $2(mnk - nk^2)$ operations!
+        This saves a DGEMM call, which is one the most expensive operation inside DLARFB
     \end{frame}
     \section{DORG2R}
     \subsection{What it is supposed to do}
     \begin{frame}
         \frametitle{Unblocked version}
-        DORG2R is specialized when we don't want to block at all. In general, this will be slower for most
-        use cases, but is used in our blocked loop. So, we discuss the general behavior now.
+        DORG2R is the unblocked version that is based on matrix-vector products instead of matrix-matrix 
+        operations. In general, this will be slower for most use cases, but is used in our blocked loop. So, we discuss the general behavior now.
     \end{frame}
     \subsection{Existing Behavior}
     \begin{frame}
@@ -320,7 +393,7 @@
             \EndFor
         \end{algorithmic}
         This ends up being much slower as we are doing matrix vector operations, which are not as
-        heavily optimized as matrix-matrix operations
+        efficient as matrix-matrix operations
     \end{frame}
     \subsection{``Blocked'' equivalent}
     \begin{frame}
@@ -352,7 +425,7 @@
     \end{frame}
     \subsection{Numerical Experiments}
     \begin{frame}
-        \frametitle{Comparison in speed to DORG2R}
+        \frametitle{Comparison of DORGKR to DORG2R}
     \end{frame}
     \subsection{Computational Cost}
     \begin{frame}
@@ -363,8 +436,18 @@
             \text{DORGKR: }&\, \dfrac{2mn^2 + n^2 - n}{2}
         \end{align*}
     \end{frame}
+    \section{Putting it all together}
+    \begin{frame}
+        \frametitle{My DORGQR vs Existing DORGQR} 
+        When putting all the above pieces together, we see the following performance
+    \end{frame}
+    \section{References}
+    \begin{frame}
+        \frametitle{References}
+    \end{frame}
     \begin{frame}
         \frametitle{Thanks for listening!}
         Are there any questions?
     \end{frame}
+
 \end{document}
