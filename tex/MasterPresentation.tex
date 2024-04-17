@@ -21,6 +21,8 @@
 \customframefont{\normalsize}
 }
 
+\newcommand{\R}{\mathbb{R}}
+
 
 %---------------%
 % Abstract:     %
@@ -70,6 +72,15 @@
         %
     \end{frame}
     \begin{frame}
+        \frametitle{Notation}
+        Throughout this presentation we will use the notation used by LAPACK. The first character determines what kind of numbers we are working with. Ex:
+        \begin{itemize}
+            \item DLACPY is the routine that copies double precision real numbers from one matrix to another
+        \end{itemize}
+        In this presentation, we will be restricting our discussion to only double precision real numbers,
+        but there are analogous versions for single precision real, and both complex precisions.
+    \end{frame}
+    \begin{frame}
         \frametitle{Brief Linear Algebra Review}
         Householder reflectors are a way to to represent a matrix as a product of rank $1$ updates of the form
         $$
@@ -81,36 +92,34 @@
             \item Hessenberg Reduction *GEBRD
             \item QR Factorization *GEQRF
         \end{itemize}
-        % This is just a scheme that we can adopt via other methods. One alternative is for Modified Gram-Schmidt (MGS) with \tau_i = 1
     \end{frame}
     \section{DORGQR Overview}
-    \begin{frame}
-        \frametitle{a}
-    \end{frame}
     \subsection{Existing Behavior}
     \begin{frame}
-        \frametitle{a}
+        \frametitle{LAPACK DORGQR}
+        The algorithm for computing $Q$ is as follows
+        \begin{algorithmic}
+            \State Determine blocking parameter $nb$
+            \State Initialize $Q$ as the $m\times m$ identity matrix
+            \For{Each block of size $nb$ of $V$}
+            \State Compute the $T$ factor
+            \State Apply the block of reflectors to trailing columns of $Q$
+            \State Apply the block of reflectors to the current block of columns of $Q$
+            \EndFor
+        \end{algorithmic}
     \end{frame}
     \subsection{Places for Optimization}
     \begin{frame}
-        \frametitle{a}
-    \end{frame}
-    \section{Main Driver Algorithm}
-    \begin{frame}
-        \frametitle{a}
-    \end{frame}
-    \subsection{Saving Flops on first iteration}
-    \begin{frame}
-        \frametitle{a}
-    \end{frame}
-    \subsection{Saving Memory on remaining iterations}
-    \begin{frame}
-        \frametitle{a}
+        \frametitle{Places for Optimization}
+        We have $4$ main places to look at to optimize this computation.
+        \begin{enumerate}
+            \item Computing $T$ (DLARFT)
+            \item Applying to the trailing columns of $Q$ (DLARFB)
+            \item Applying to the current window of $Q's$ columns (DORG2R)
+            \item Take advantage of initializing $Q$ as $I_m$. (Main driver DORGQR)
+        \end{enumerate}
     \end{frame}
     \section{Computation of T}
-    \begin{frame}
-        \frametitle{a}
-    \end{frame}
     \subsection{Existing Behavior}
     \begin{frame}
         \frametitle{LAPACK Implementation}
@@ -151,7 +160,7 @@
         \begin{align*}
             T_{1,2} &= -T_{1,1}V_1^\top V_2T_{2,2} \\
             V &= \begin{bmatrix}
-                V_1 & V_2
+                V_1 \\ V_2
             \end{bmatrix}\\
             T &= \begin{bmatrix}
                 T_{1,1} & T_{1,2} \\
@@ -185,70 +194,155 @@
         %\includegraphics[width=.4\textwidth]{figs/dlarftNVaryTime.pdf}
         \end{center}
     \end{frame}
-    %\section{Future work}
-    %\begin{frame}
-    %    \frametitle{Future work/open questions for Matrix Operation Based}
-    %    \begin{itemize}
-    %        \item Complex arithmetic
-    %        \item Stability
-    %    \end{itemize}
-    %\end{frame}
+    \subsection{Computational Cost}
+    %\begin{framefont}{\small}
+    \begin{frame}
+        \frametitle{Floating Point Operation Count}
+        For these two different versions, we get the following computation cost for $V\in\R^{m\times n}$ and  $T\in\R^{n\times n}$
+        \begin{align*}
+            \text{DLARFT: }&\,  \frac{(n^2-1)(2m+n)}{6}\\
+            \text{DLARFT\_REC: }&\, \frac{(n^2-1)(2m+n)}{6}\\
+            \text{DLARFT\_MAT: }&\, \frac{6mn^2 + 6mn +4n^3 -9n^2 + 5n}{6}
+        \end{align*}
+        Even though we have more operations in the last version, we still see execution speeds on a similar level
+        as recursive as we are using highly optimized BLAS routines.
+    \end{frame}
+    %\end{framefont}
     \section{DLARFB}
     \begin{frame}
-        \frametitle{a}
+        \frametitle{DLARFB Algorithm}
+        Want to compute $C = HC$ where $H$ has the form
+        $$
+        H = I - VTV^\top
+        $$
+        And $C$ is any matrix of the proper shape. We break up $V$ and $C$ as follows
+        $$
+            V = \begin{bmatrix}
+                V_1\\
+                V_2
+            \end{bmatrix} \qquad
+            C = \begin{bmatrix}
+                C_1\\
+                C_2
+            \end{bmatrix}
+        $$
+    \end{frame}
+    \begin{frame}
+        \frametitle{DLARFB Algorithm}
+        By doing so, and doing some algebra, we get the following two updates we need to compute, which are
+        \begin{align*}
+            C_1 &= C_1 - V_1T\left(V_1^\top C_1 + V_2^\top C_2\right) \\
+            C_2 &= C_2 - V_2T\left(V_1^\top C_1 + V_2^\top C_2\right)
+        \end{align*}
     \end{frame}
     \subsection{Existing behavior}
     \begin{frame}
-        \frametitle{a}
+        \frametitle{Current Algorithm}
+        %Assuming that $C$ is non-zero, we need an extra bit of memory of size $nb\times nb$.
+        Reference LAPACK does the following with a workspace of size $nb\times nb$ denoted $W$\\\,\\
+        \begin{algorithmic}
+            \State $W = C_1^\top$
+            \State $W = WV_1$
+            \State $W = W + C_2^\top V_2$
+            \State $W = WT^\top$
+            \State $C_2 = C_2 - V_2W^\top$
+            \State $W = WV_1^\top$
+            \State $C_1 = C_1 - W^\top$
+        \end{algorithmic}\,\\
+        However, we get an extra bit of information that $C_1$ starts as the $0$ matrix, which is the correct
+        size, so we can use that as a workspace instead!
     \end{frame}
     \subsection{New Behavior}
     \begin{frame}
-        \frametitle{a}
+        \frametitle{New algorithm}
+        Taking advantage of the fact that for DORGQR, $C_1 = 0$, we have the following sequence of operations
+        \begin{algorithmic}
+            \State $C_1 = V_2^\top C_2$
+            \State $C_1 = TC_1$
+            \State $C_2 = C_2 - V_2C_1$
+            \State $C_1 =     - V_1C_1$
+        \end{algorithmic}
     \end{frame}
     \subsection{Flop Comparison}
     \begin{frame}
-        \frametitle{a}
-    \end{frame}
-    \subsection{Memory reduction}
-    \begin{frame}
-        \frametitle{a}
+        \frametitle{Floating Point Operation Counts}
+        For these two different versions, we get the following computation cost for $V\in\R^{m\times k}$, $T\in\R^{k\times k}$, and $C\in\R^{m\times n}$.\footnote{Note: In our actual loops, we grow $m$ and $n$, and $k$ is the blocking parameter usually just set to $32$.}
+        \begin{align*}
+            \text{DLARFB: }&\, 3nk^2 + 4(m-k)nk + nk\\
+            \text{NEW\_DLARFB: }&\, 2nk^2 + 4(m-k)nk
+        \end{align*}
+        In addition to our memory savings, we also have a slight computation improvement. We don't see
+        much of this benefit in computational cost in practice though. Note: we are also linear in $m$ and
+        $n$, so we scale well when we treat $k$ as a constant blocking parameter.
     \end{frame}
     \section{DORG2R}
-    \begin{frame}
-        \frametitle{a}
-    \end{frame}
     \subsection{What it is supposed to do}
     \begin{frame}
-        \frametitle{a}
+        \frametitle{Unblocked version}
+        DORG2R is specialized when we don't want to block at all. In general, this will be slower for most
+        use cases, but is used in our blocked loop. So, we discuss the general behavior now.
     \end{frame}
     \subsection{Existing Behavior}
     \begin{frame}
-        \frametitle{a}
-    \end{frame}
-    \subsection{Note about optimized behavior (AOCL)}
-    \begin{frame}
-        \frametitle{a}
+        % Summary: This is just DORGQR with a blocksize of 1
+        \frametitle{DORG2R algorithm inside DORGQR}
+        \begin{algorithmic}
+            \For{Each column of $V$ denoted $v_i$}
+            \State Apply $I-\tau_iv_iv_i^\top$ to the trailing columns of $Q$
+            \EndFor
+        \end{algorithmic}
+        This ends up being much slower as we are doing matrix vector operations, which are not as
+        heavily optimized as matrix-matrix operations
     \end{frame}
     \subsection{``Blocked'' equivalent}
     \begin{frame}
-        \frametitle{a}
+        \frametitle{What about a middle ground?}
+        Since we already have our $T$ computed, why not try to use it to make the last application of our reflectors
+        more efficient! Since we are assuming $T$ is a ``small'' matrix, we can manually compute 
+        $$
+            I - VTV^\top
+        $$
+        without having to loop!
     \end{frame}
     \section{DORGKR}
-    \begin{frame}
-        \frametitle{a}
-    \end{frame}
     \subsection{Algorithm Overview}
     \begin{frame}
-        \frametitle{a}
-    \end{frame}
-    \subsection{Placement in main driver}
-    \begin{frame}
-        \frametitle{a}
+        \frametitle{DORGKR Algorithm}
+        $$
+            Q = I - VTV^\top
+        $$ where
+        $$
+        V = \begin{bmatrix} V_1 \\ V_2 \end{bmatrix}
+        Q = \begin{bmatrix} Q_1 \\ Q_2 \end{bmatrix}
+        $$
+        \begin{algorithmic}
+            \State $T = TV_1^\top$
+            \State $Q_2 = -V_2T$
+            \State $Q_1 = -V_1T$
+            \State $Q = I - Q$
+        \end{algorithmic}
     \end{frame}
     \subsection{Numerical Experiments}
-    % Dummy frame used for ease of copy and pasting
-    % Complex?
     \begin{frame}
-        \frametitle{a}
+        \frametitle{Comparison in speed to DORG2R}
+    \end{frame}
+    \subsection{Computational Cost}
+    \begin{frame}
+        \frametitle{Floating Point Operation Cost}
+        Assuming we have $V\in\R^{m\times n}$ and $T\in\R^{n\times n}$ our costs are 
+        \begin{align*}
+            \text{DORG2R: }&\, \dfrac{4}{3}\\
+            \text{DORGKR: }&\, \dfrac{2mn^2 + n^2 - n}{2}
+        \end{align*}
+    \end{frame}
+    \section{Main Driver Algorithm}
+    \subsection{Saving Flops on first iteration}
+    \begin{frame}
+        \frametitle{Final Savings}
+        If we refer back to the algorithm of DLARFB, we can take advantage in our first step having $C_2=I$.
+    \end{frame}
+    \begin{frame}
+        \frametitle{Thanks for listening!}
+        Are there any questions?
     \end{frame}
 \end{document}
