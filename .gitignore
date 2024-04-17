@@ -72,6 +72,8 @@ tex/*thm
 *blg
 *log
 *toc
+*snm
+*nav
 
 # Exclude temp file
 ParseTimeFileW.ipynb
