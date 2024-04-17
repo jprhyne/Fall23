@@ -2,6 +2,7 @@
 #include<stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include <sys/time.h>
 
 double myNorm(int m, int n, double *A, int lda)
@@ -13,7 +14,7 @@ double myNorm(int m, int n, double *A, int lda)
             ret += tmp*tmp;
         }
     }
-    return ret;
+    return sqrt(ret);
 }
 
 int main(int argc, char **argv) {
