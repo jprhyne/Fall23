@@ -273,8 +273,8 @@
         cluster here at UC Denver\\
         % put pictures here of just the times.
         \begin{center}
-        %\includegraphics[width=.4\textwidth]{figs/dlarftNBTime.pdf}
-        %\includegraphics[width=.4\textwidth]{figs/dlarftNVaryTime.pdf}
+        \includegraphics[width=.45\textwidth]{figures/timeDLARFT.pdf}
+        \includegraphics[width=.45\textwidth]{figures/flopDLARFT.pdf}
         \end{center}
     \end{frame}
     \subsection{Computational Cost}
@@ -362,6 +362,13 @@
         much of this benefit in computational cost in practice though. Note: we are also linear in $m$ and
         $n$, so we scale well when we treat $k$ as a constant blocking parameter.
     \end{frame}
+    \begin{frame}
+        \frametitle{Numerical Experiments}
+        \begin{center}
+        \includegraphics[width=.45\textwidth]{figures/timeDLARFB.pdf}
+        \includegraphics[width=.45\textwidth]{figures/flopDLARFB.pdf}
+        \end{center}
+    \end{frame}
     \section{Main Driver Algorithm}
     \subsection{Saving Flops on first iteration}
     \begin{frame}
@@ -428,6 +435,10 @@
         \frametitle{Comparison of DORGKR to DORG2R}
         %more improvement from the fact that we are blocking and using matrix-matrix operations,
         %which are much faster in practice.
+        \begin{center}
+        \includegraphics[width=.45\textwidth]{figures/timeDORGKR.pdf}
+        \includegraphics[width=.45\textwidth]{figures/flopDORGKR.pdf}
+        \end{center}
     \end{frame}
     \subsection{Computational Cost}
     \begin{frame}
@@ -452,6 +463,11 @@
 
         We omit the FLOP counts for these routines as they introduce another variable and another question that we don't
         have time to discuss in detail. % vary m=n, vary k vs vary m, vary n=k
+        \begin{center}
+        %\includegraphics[width=.45\textwidth]{figures/timeDLARFT.pdf}
+        %\includegraphics[width=.45\textwidth]{figures/flopDLARFT.pdf}
+        \end{center}
+        \textbf{\large Need to regenerate these. Issue in timing files. Will use much smaller cases to get something for this slide}
     \end{frame}
     \section{References}
     \begin{frame}
