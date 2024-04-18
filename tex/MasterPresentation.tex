@@ -104,7 +104,7 @@
             In order to compute this matrix, we can do the following.\\\,\\
         \begin{algorithmic}[1]
             \State Initialize $Q$ to $I$.
-            \For{Each column of $V$ denoted $v_i$ from $i=n$ to $1$}
+            \For{Each column of $V$ denoted $v_i$ from $i=k$ to $1$}
             \State Apply $I-\tau_iv_iv_i^\top$ to $Q$ from the left
             \EndFor
         \end{algorithmic}\,\\
@@ -281,15 +281,15 @@
     %\begin{framefont}{\small}
     \begin{frame}
         \frametitle{Floating Point Operation Count}
-        For these two different versions, we get the following computation cost for $V\in\R^{m\times n}$ and  $T\in\R^{n\times n}$
+        For these two different versions, we get the following computation cost for $V\in\R^{m\times k}$ and  $T\in\R^{k\times k}$
         $$
         \begin{aligned}
-            \text{DLARFT: }&\,      \frac{6mn^2 - 6mn -4n^3 +6n^2 - 2n}{6}&\approx mn^2\\
-            \text{DLARFT\_REC: }&\, \frac{6mn^2 - 6mn -2n^3 +3n^2 -  n}{6}&\approx mn^2\\
-            \text{DLARFT\_MAT: }&\, \frac{6mn^2 + 6mn +4n^3 -9n^2 + 5n}{6}&\approx mn^2 
+            \text{DLARFT: }&\,      \frac{6mk^2 - 6mk -4k^3 +6k^2 - 2k}{6}&\approx mk^2 - \frac{2k^3}{3}\\
+            \text{DLARFT\_REC: }&\, \frac{6mk^2 - 6mk -2k^3 +3k^2 -  k}{6}&\approx mk^2 - \frac{k^3}{3}\\
+            \text{DLARFT\_MAT: }&\, \frac{6mk^2 + 6mk +4k^3 -9k^2 + 5k}{6}&\approx mk^2 + \frac{2k^3}{3}
         \end{aligned}
         $$
-        Even though in both of our new versions, we have more operations, these are almost all on the order of $n^3$, 
+        Even though in both of our new versions, we have more operations, these are almost all on the order of $k^3$, 
         which we assume is a constant.
         % Roughly 10k more operations, which is nothing for modern machines. We are on fractions of a second with this
         %   number
@@ -356,7 +356,7 @@
         For these two different versions, we get the following computation cost for $V\in\R^{m\times k}$, $T\in\R^{k\times k}$, and $C\in\R^{m\times n}$.\footnote{Note: In our actual loops, we grow $m$ and $n$, and $k$ is the blocking parameter usually just set to $32$.}
         \begin{align*}
             \text{DLARFB: }&\, 4mnk - nk^2 + nk\\
-            \text{NEW\_DLARFB: }&\, 4mnk - 2nk^2
+            \text{DLARFB\_0C2: }&\, 4mnk - 2nk^2
         \end{align*}
         In addition to our memory savings, we also have a slight computation improvement. We don't see
         much of this benefit in computational cost in practice though. Note: we are also linear in $m$ and
@@ -380,7 +380,14 @@
             \State $C_2 = C_2 - V_2C_1$
             \State $C_1 =     - V_1C_1$
         \end{algorithmic}
-        This saves a DGEMM call, which is one the most expensive operation inside DLARFB
+        This saves a DGEMM call, which is one the most expensive operation inside DLARFB. If we have a block of size $L$, then we are saving:
+        $$
+            2L\left(M-K\right)\left(N-K\right) = 2L\left(MN - MK - NK + K^2\right)
+        $$
+        in most cases, $L = 32$, so we save
+        $$
+            64(MN - MK - NK + K^2)
+        $$
     \end{frame}
     \section{DORG2R}
     \subsection{What it is supposed to do}
@@ -443,15 +450,15 @@
     \subsection{Computational Cost}
     \begin{frame}
         \frametitle{Floating Point Operation Cost}
-        Assuming we have $V\in\R^{m\times n}$ and $T\in\R^{n\times n}$ our costs are 
+        Assuming we have $V\in\R^{m\times k}$ and $T\in\R^{k\times k}$ our costs are 
         $$
         \begin{aligned}
             % Note: This is only true for the k = n case for DORG2R
-            \text{DORG2R: }&\, \dfrac{12mn^2 - 6mn -4n^3 +9n^2 - 11n}{6} &\approx 2mn^2\\
-            \text{DORGKR: }&\, \dfrac{2mn^2 + n^2 - n}{2} &\approx mn^2
+            \text{DORG2R: }&\, \dfrac{12mk^2 - 6mk -4k^3 +9k^2 - 11k}{6} &\approx 2mk^2\\
+            \text{DORGKR: }&\, \dfrac{2mk^2 + k^2 - k}{2} &\approx mk^2
         \end{aligned}
         $$
-        We see an improvement for a factor of $2$, which is non-negligbile, but we should note that the sizes
+        We see an improvement for a factor of $2$, which is non-negligible, but we should note that the sizes
         used within our routine are relatively small, so we won't see this improvement much when we put it all together
 
         
@@ -464,10 +471,9 @@
         We omit the FLOP counts for these routines as they introduce another variable and another question that we don't
         have time to discuss in detail. % vary m=n, vary k vs vary m, vary n=k
         \begin{center}
-        %\includegraphics[width=.45\textwidth]{figures/timeDLARFT.pdf}
-        %\includegraphics[width=.45\textwidth]{figures/flopDLARFT.pdf}
+            \includegraphics[width=.7\textwidth]{figures/timeDORGQR.pdf}
+            %\includegraphics[width=.45\textwidth]{figures/flopDORGQR.pdf}
         \end{center}
-        \textbf{\large Need to regenerate these. Issue in timing files. Will use much smaller cases to get something for this slide}
     \end{frame}
     \section{References}
     \begin{frame}
