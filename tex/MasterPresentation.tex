@@ -454,7 +454,7 @@
         $$
         \begin{aligned}
             % Note: This is only true for the k = n case for DORG2R
-            \text{DORG2R: }&\, \dfrac{12mk^2 - 6mk -4k^3 +9k^2 - 11k}{6} &\approx 2mk^2\\
+            \text{DORG2R: }&\, \dfrac{12mk^2 - 6mk -4k^3 +9k^2 - 11k}{6} &\approx 2mk^2 - \frac{2k^3}{3}\\
             \text{DORGKR: }&\, \dfrac{2mk^2 + k^2 - k}{2} &\approx mk^2
         \end{aligned}
         $$
@@ -471,9 +471,10 @@
         We omit the FLOP counts for these routines as they introduce another variable and another question that we don't
         have time to discuss in detail. % vary m=n, vary k vs vary m, vary n=k
         \begin{center}
-            \includegraphics[width=.7\textwidth]{figures/timeDORGQR.pdf}
-            %\includegraphics[width=.45\textwidth]{figures/flopDORGQR.pdf}
+            \includegraphics[width=.45\textwidth]{figures/timeDORGQR.pdf}
+            \includegraphics[width=.45\textwidth]{figures/flopDORGQR.pdf}
         \end{center}
+        In these graphs, we set $n=k$.
     \end{frame}
     \section{References}
     \begin{frame}
