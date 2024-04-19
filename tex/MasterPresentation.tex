@@ -1,6 +1,6 @@
 % Missing putting everything together
 % Add at the very end comparing ref_qr to new_qr
-\documentclass[12pt]{beamer}
+\documentclass[12pt,aspectratio=169]{beamer}
 \title{Optimized Computation of the Q Factor in LAPACK}
 \author{Johnathan Rhyne\\Advised by: Julien Langou}
 \institute{University of Colorado Denver}
@@ -218,12 +218,14 @@
             \node at (3.333,1.333) {$T_{2,2}$};
             \draw[->] (5,2) -- (6,2);
             \draw (7, 4) -- (11,4) -- (11, 0) -- cycle;
-            \draw[fill=blue] (7, 4) -- (8.5, 4) -- (8.5, 2.5) -- cycle;
-            \draw[fill=orange]  (8.5,4) -- (10,4) -- (10,2.5) -- (8.5,2.5) -- cycle;
+            \draw[fill=blue] (7, 4) -- (7.75, 4) -- (7.75, 3.25) -- cycle;
+            \draw[fill=orange]  (7.75,4) -- (8.5,4) -- (8.5,3.25) -- (7.75,3.25) -- cycle;
+            \draw[fill=blue] (7.75, 3.25) -- (8.5, 3.25) -- (8.5, 2.5) -- cycle;
+            %\draw[fill=orange]   -- (10,4) -- (10,2.5) --  -- cycle;
             \draw[fill=blue] (8.5,2.5) -- (10, 2.5) -- (10, 1) -- cycle;
             \draw[fill=orange] (10,2.5) -- (11,2.5) -- (11,1) -- (10,1) -- cycle;
             \draw[fill=blue] (10,1) -- (11,1) -- (11,0) -- cycle;
-            \draw[fill=black] (10,4) -- (11,4) -- (11,2.5) -- (10,2.5) -- cycle;
+            \draw[fill=green!75!black] (8.5,4) -- (11,4) -- (11,2.5) -- (8.5,2.5) -- cycle;
         \end{tikzpicture}
     \end{frame}
     \begin{frame}
@@ -293,6 +295,14 @@
         which we assume is a constant.
         % Roughly 10k more operations, which is nothing for modern machines. We are on fractions of a second with this
         %   number
+    \end{frame}
+    \begin{frame}
+        \frametitle{Matrix Matrix Multiplication Performance}
+        A good metric to see how performant a machine is matrix matrix multiplication. It gives us an upper bound on the kind of performance to expect
+        \begin{centering}
+            \includegraphics[width=.45\textwidth]{figures/timeMMM.pdf}
+            \includegraphics[width=.45\textwidth]{figures/flopMMM.pdf}
+        \end{centering}
     \end{frame}
     %\end{framefont}
     \section{DLARFB}
@@ -458,7 +468,7 @@
             \text{DORGKR: }&\, \dfrac{2mk^2 + k^2 - k}{2} &\approx mk^2
         \end{aligned}
         $$
-        We see an improvement for a factor of $2$, which is non-negligible, but we should note that the sizes
+        We see an iprovement for a factor of $2$, which is non-negligible, but we should note that the sizes
         used within our routine are relatively small, so we won't see this improvement much when we put it all together
 
         
@@ -472,11 +482,25 @@
             \includegraphics[width=.45\textwidth]{figures/timeDORGQR.pdf}
             \includegraphics[width=.45\textwidth]{figures/flopDORGQR.pdf}
         \end{center}
-        In these graphs, we set $n=k$.
+        In these graphs, we are using a rectangular input (IE: $n=k$)
+    \end{frame}
+    \begin{frame}
+        \frametitle{My DORGQR vs Existing DORGQR} 
+        When putting all the above pieces together, we see the following performance:
+
+        \begin{center}
+            \includegraphics[width=.45\textwidth]{figures/timeDORGQRSquare.pdf}
+            \includegraphics[width=.45\textwidth]{figures/flopDORGQRSquare.pdf}
+        \end{center}
+        In these graphs, we are using a square input (IE: $m=n$)
     \end{frame}
     \section{References}
     \begin{frame}
         \frametitle{References}
+        \begin{itemize}
+            \item Thierry Joffrain, Tze Meng Low, Enrique S. Quintana-Ortí, Robert van de Geijn, and Field G. Van Zee. 2006. Accumulating Householder transformations, revisited. ACM Trans. Math. Softw. 32, 2 (June 2006), 169–179. https://doi.org/10.1145/1141885.1141886
+            \item Chiara Puglisi. 1992. Modification of the Householder Method Based on the Compact WY Representation. SIAM J. Sci. Stat. Comput. 13, 3 (May 1992), 723–726. https://doi.org/10.1137/0913042
+        \end{itemize}
     \end{frame}
     \begin{frame}
         \frametitle{Thanks for listening!}
