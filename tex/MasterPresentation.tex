@@ -88,12 +88,13 @@
         \frametitle{Brief Linear Algebra Review}
         Householder reflectors are a way to to represent a matrix as a product of rank $1$ updates of the form
         $$
-            Q = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_k v_kv_k^\top\right) = I - VTV^\top
+            Q = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_k v_kv_k^\top\right) %= I - VTV^\top
         $$
+        The matrix of the Householder reflectors, $V$, is unit lower triangular.
         Routines that use this\footnote{Collected by listing some functions found on the caller graph of DLARFT found \textcolor{blue}{\href{https://netlib.org/lapack/explore-html//d7/d0d/group__larft_ga20e5a4f351b3ca7d30078547e55884f5_ga20e5a4f351b3ca7d30078547e55884f5_icgraph_org.svg}{here}}}
         \begin{itemize}
             \item SVD *GESVD
-            \item Hessenberg Reduction *GEBRD
+            \item Hessenberg Reduction *GEHRD
             \item QR Factorization *GEQRF
         \end{itemize}
     \end{frame}
@@ -103,13 +104,43 @@
         \frametitle{Basic Algorithm}
             In order to compute this matrix, we can do the following.\\\,\\
         \begin{algorithmic}[1]
-            \State Initialize $Q$ to $I$.
+            \State Initialize $Q$ as the $m\times n$ identity matrix
             \For{Each column of $V$ denoted $v_i$ from $i=k$ to $1$}
             \State Apply $I-\tau_iv_iv_i^\top$ to $Q$ from the left
             \EndFor
         \end{algorithmic}\,\\
+        Note: $m \geq n \geq k$, and we are typically interested in these two main use cases:
+        \begin{enumerate}
+            \item $m=n \geq k$
+            \item $m\geq n=k$
+        \end{enumerate}
         This method will give us the answer by applying all of our reflectors one after the other. But, we can make this 
         faster by doing many at the same time!
+    \end{frame}
+    \begin{frame}
+        \frametitle{Blocking idea}
+        % In order to motivate the recursive formulation, we notice that if we had a way to collect these
+        % T values for the first l columns and the remaining, we want to do the following
+        To motivate blocking our algorithm, we see that if we have just $2$:
+        \begin{align*}
+            &\,\left(I - \tau_1 v_1v_1^\top\right)\left(I - \tau_2 v_2v_2^\top\right) \\
+            &= I - \tau_1v_1v_1^\top - \tau_2v_2v_2^\top + \tau_1\tau_2v_1v_1^\top v_2v_2^\top \\
+            &= I - \tau_1v_1v_1^\top - \tau_2v_2v_2^\top + \left(\tau_1\tau_2v_1^\top v_2\right)v_1v_2^\top
+        \end{align*}
+        Can be rewritten as:
+        $$
+            I - VTV^\top
+        $$
+        where:
+        \begin{align*}
+            V &= \begin{bmatrix}
+                v_1 & v_2
+            \end{bmatrix}\\
+            T &= \begin{bmatrix}
+                \tau_1 & \tau_1\tau_2v_1^\top v_2 \\
+                0       & \tau_2
+            \end{bmatrix}
+        \end{align*}
     \end{frame}
     \subsection{Existing Behavior}
     \begin{frame}
@@ -117,11 +148,26 @@
         In practice, we don't do one reflector at a time, we do many! The algorithm to do so is as follows\\\,\\
         \begin{algorithmic}[1]
             \State Determine blocking parameter $nb$
-            \State Initialize $Q$ as the $m\times m$ identity matrix
+            \State Initialize $Q$ as the $m\times n$ identity matrix
             \For{Each block of size $nb$ of $V$}
-            \State Compute the $T$ factor
-            \State Apply the block of reflectors to trailing columns of $Q$
-            \State Apply the block of reflectors to the current block of columns of $Q$
+            \State Compute the $T$ matrix
+            \State Apply $I-\tau_iv_iv_i^\top$ to $Q$ from the left by block of the form $I-VTV^\top$.
+            %\State Apply the block of reflectors to trailing columns of $Q$
+            %\State Apply the block of reflectors to the current block of columns of $Q$
+            \EndFor
+        \end{algorithmic}
+    \end{frame}
+    \begin{frame}
+        \frametitle{Blocking algorithm}
+        \begin{algorithmic}[1]
+            \State Determine blocking parameter $nb$
+            \State Initialize $Q$ as the $m\times n$ identity matrix
+            %\State Handle $m\times n-k$ trailing columns of $Q$.
+            \For{Each block of size $nb$ of $V$}
+            \State (DLARFB) Compute the $T$ matrix
+            %\State Apply $I-\tau_iv_iv_i^\top$ to $Q$ from the left by block
+            \State (DLARFB) Apply the block of reflectors to trailing columns of $Q$
+            \State (DORG2R) Apply the block of reflectors to itself 
             \EndFor
         \end{algorithmic}
     \end{frame}
@@ -173,7 +219,7 @@
         % At a high level, what the current dlarft does is compute T one column at a time.
         The algorithm for DLARFT is given by\footnote{Taken from the comments of DLARFT found \textcolor{blue}{\href{https://netlib.org/lapack/explore-html//dd/daa/dlarft_8f_source.html}{here}}\\\,}:
         \begin{algorithmic}[1]
-            \For{Each column of $V$}
+            \For{Each column of $V$, $v_i$}
                 \State $T(1:i-1,i) = -\tau_i V(:,1:i-1)^\top * V(:,i)$
                 \State $T(1:i-1,i) = T(1:i-1,1:i-1) * T(1:i-1,i)$
                 \State $T(i,i) = \tau_i$
@@ -308,21 +354,28 @@
     \section{DLARFB}
     \begin{frame}
         \frametitle{DLARFB Algorithm}
-        Want to compute $C = HC$ where $H$ has the form
+        Given $V\in\R^{m\times k}$, $T\in\R^{k\times k}$, and $C\in\R^{m\times n}$, we 
+        want to compute $C = HC$ where $H$ has the form
         $$
         H = I - VTV^\top
         $$
-        And $C$ is any matrix of the proper shape. We break up $V$ and $C$ as follows
+        $V$ is unit lower triangular, $T$ is upper triangular, 
+        and $C$ is any matrix of the proper shape. 
+
+        We break up $V$ and $C$ as follows
         $$
             V = \begin{bmatrix}
                 V_1\\
                 V_2
             \end{bmatrix} \qquad
-            C\footnote{We will also have two specialized routines for when $C_1 = 0$ and one with $C_1=0$ and $C_2=I$} = \begin{bmatrix}
+            C = \begin{bmatrix}
                 C_1\\
                 C_2
             \end{bmatrix}.
         $$
+        $V_1$ is square of size $k$ and unit lower triangular.
+
+        We will also have two specialized routines for when $C_1 = 0$ and one with $C_1=0$ and $C_2=I$
     \end{frame}
     \begin{frame}
         \frametitle{DLARFB Algorithm}
@@ -336,7 +389,7 @@
     \begin{frame}
         \frametitle{Current Algorithm}
         %Assuming that $C$ is non-zero, we need an extra bit of memory of size $nb\times nb$.
-        Reference LAPACK does the following with a workspace of size $nb\times nb$ denoted $W$\\\,\\
+        Reference LAPACK does the following with a workspace of size $k\times k$ denoted $W$\\\,\\
         \begin{algorithmic}[1]
             \State $W = C_1^\top$
             \State $W = WV_1$
@@ -351,7 +404,7 @@
     \end{frame}
     \subsection{New Behavior}
     \begin{frame}
-        \frametitle{New algorithm}
+        \frametitle{Specialized Algorithm for $C_1 = 0$}
         Taking advantage of the fact that for DORGQR, $C_1 = 0$, we have the following sequence of operations
         \begin{algorithmic}[1]
             \State $C_1 = V_2^\top C_2$
@@ -390,34 +443,37 @@
             \State $C_2 = C_2 - V_2C_1$
             \State $C_1 =     - V_1C_1$
         \end{algorithmic}
-        This saves a DGEMM call, which is one the most expensive operation inside DLARFB. If we have a block of size $L$, then we are saving:
+        This saves a DGEMM call, which is one the most expensive operation inside DLARFB. If we have a block of size $\ell$, then we are saving:
         $$
-            2L\left(M-K\right)\left(N-K\right) = 2L\left(MN - MK - NK + K^2\right)
+            2\ell\left(m-k\right)\left(n-k\right) 
         $$
-        in most cases, $L = 32$, so we save
+        in most cases, $\ell = 32$, so we save
         $$
-            64(MN - MK - NK + K^2)
+            64\left(m-k\right)\left(n-k\right)
         $$
+        In the use case, $m=n\geq k$, we have interesting improvement
     \end{frame}
     \section{DORG2R}
     \subsection{What it is supposed to do}
     \begin{frame}
         \frametitle{Unblocked version}
         DORG2R is the unblocked version that is based on matrix-vector products instead of matrix-matrix 
-        operations. In general, this will be slower for most use cases, but is used in our blocked loop. So, we discuss the general behavior now.
+        operations. In general, this will be slower for most use cases, but is used in our blocked loop as a panel step.
     \end{frame}
     \subsection{Existing Behavior}
     \begin{frame}
         % Summary: This is just DORGQR with a blocksize of 1
         \frametitle{DORG2R algorithm inside DORGQR}
-        Reminder: our main algorithm is as follows:
+        $m\geq n=k$.
+
+        The LAPACK $DORG2R$ algorithm performs as follows:
         \begin{algorithmic}[1]
             \For{Each column of $V$ denoted $v_i$}
             \State Apply $I-\tau_iv_iv_i^\top$ to the trailing columns of $Q$
             \EndFor
         \end{algorithmic}
-        This ends up being much slower as we are doing matrix vector operations, which are not as
-        efficient as matrix-matrix operations
+        This ends up being slow as we are doing matrix vector operations, which are not as
+        efficient as matrix-matrix operations.
     \end{frame}
     \subsection{``Blocked'' equivalent}
     \begin{frame}
@@ -468,10 +524,10 @@
             \text{DORGKR: }&\, \dfrac{2mk^2 + k^2 - k}{2} &\approx mk^2
         \end{aligned}
         $$
-        We see an iprovement for a factor of $2$, which is non-negligible, but we should note that the sizes
-        used within our routine are relatively small, so we won't see this improvement much when we put it all together
+        We see an improvement for a factor of $2$, which is non-negligible, which is due to the fact that we are exploiting information from $T$.
 
-        
+        We should note that the sizes used within our routine are relatively small, so we won't see 
+        this improvement much when we put it all together
     \end{frame}
     \section{Putting it all together}
     \begin{frame}
@@ -482,7 +538,7 @@
             \includegraphics[width=.45\textwidth]{figures/timeDORGQR.pdf}
             \includegraphics[width=.45\textwidth]{figures/flopDORGQR.pdf}
         \end{center}
-        In these graphs, we are using a rectangular input (IE: $n=k$)
+        In these graphs, we have $m\geq n=k$.
     \end{frame}
     \begin{frame}
         \frametitle{My DORGQR vs Existing DORGQR} 
@@ -492,7 +548,7 @@
             \includegraphics[width=.45\textwidth]{figures/timeDORGQRSquare.pdf}
             \includegraphics[width=.45\textwidth]{figures/flopDORGQRSquare.pdf}
         \end{center}
-        In these graphs, we are using a square input (IE: $m=n$)
+        In these graphs, we have $m=n\geq k$.
     \end{frame}
     \section{References}
     \begin{frame}
