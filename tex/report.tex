@@ -6,9 +6,140 @@
 \author{Johnathan Rhyne\\ Advised by: Julien Langou}
 
 
+% Add talking about org2r against orgqr 
+
+
 \begin{document}
     \maketitle
     \begin{abstract}
-    asdf
+    Computing the Q factor from a sequence of Householder elementary reflections is an important operation for some 
+    applications. We present new algorithms which speed up the performance of these operations. In addition, we also 
+    implement existing algorithms originally developed by Puglisi to speed up the computation of the T matrix. We see 
+    performance improvements on the order of 2 to 5 times more efficiency in comparison to the reference LAPACK 
+    computations and see similar performance in many cases as the optimized implementation for AMD (AOCL). Using these 
+    schemes we not only see an improvement in execution time, but lowers the memory footprint for the main driver 
+    algorithm.
     \end{abstract}
+    \section{Preliminaries}
+    We use householder reflectors to represent orthogonal matrices as a product of $k$ many rank one updates to the identity matrix. This means we can write an orthogonal matrix $Q_m\in\R^{m\times m}$ as 
+    \begin{equation}\label{eq:Q}
+        Q_m = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_kv_kv_k^\top\right)
+    \end{equation}
+    One key note is that if we don't want all $m$ of the columns, we can instead choose a smaller amount denoted $n$ 
+    and this lets us get $Q_n\in\R^{m\times n}$ by 
+    \begin{equation}\ref{eq:Qn}
+        Q_n = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_kv_kv_k^\top\right)I_{m\times n}
+    \end{equation}
+    Where the $i,j$th element of $I_{m\times n}$ is given by:
+    \begin{equation*}
+        I_{m\times n}(i,j) = \begin{cases}
+            1 & 1\leq i = j\leq n\\
+            0 & \text{otherwise}
+        \end{cases}
+    \end{equation*}
+    Throughout this discussion, we will omit the subscripts, and instead we will be assuming the size to be 
+    what makes sense in context. In general, algorithms will compute $Q_n$ while our theory will discuss computing $Q_m$. 
+    and we will assume that $m\geq n\geq k$.
+    \section{DORGQR Overview}
+    \subsection{Motivation}
+    At a high level, we want to compute this matrix. One method is to compute $Q$ is given by algorithm \ref{alg:dorg2r}
+
+    \begin{algorithm}
+        \caption{Columnwise computation of $Q$}\label{alg:dorg2r}
+        \begin{algorithmic}[1]
+            \STATE $Q= I_{m\times n}$
+            \FOR{$i=k,\dots,1$}
+                \STATE $Q= \left(I-\tau_iv_iv_i^\top\right)Q$
+            \ENDFOR
+        \end{algorithmic}
+    \end{algorithm}
+
+    A proper implementation of algorithm \ref{alg:dorg2r} will do so via matrix-vector products. While these operations
+    are heavily optimized, we can still gain more by instead trying to use matrix-matrix
+    operations. So, we look at how we can combine a few loops from algorithm \ref{alg:dorg2r}. In order to motivate the general method we first look at the case of $k=2$.
+
+    When this happens, we see that equation \ref{eq:Q} gives us the following
+    \begin{align*}
+        Q &= \left(I-\tau_1v_1v_1^\top\right)\left(I-\tau_2v_2v_2^\top\right) \\
+        &= I - \tau_1v_1v_1^\top - \tau_2v_2v_2^\top + \tau_1\tau_2v_1v_1^\top v_2v_2^\top
+    \end{align*}
+    Defining the matrices
+    \begin{align*}
+        V &= \begin{bmatrix} v_1 & v_2 \end{bmatrix} \\
+        T &= \begin{bmatrix}
+            \tau_1 & \tau_1\tau_2v_1^\top v_2 \\
+            0      & \tau_2
+        \end{bmatrix}
+    \end{align*}
+    We can rewrite above as 
+    \[
+        Q = I - VTV^\top
+    \]
+    In fact, we can extend this even further to the case where we assume we already collected some of our reflectors and we now want to collect these ``blocks''
+    \begin{align*}
+        Q &= \left(I - V_1T_{1,1}V_1^\top\right)\left(I - V_2T_{2,2}V_2^\top\right) \\
+        &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1T_{1,1}V_1^\top V_2T_{2,2}V_2^\top \\
+        &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1\left(T_{1,1}V_1^\top V_2T_{2,2}\right)V_2^\top 
+    \end{align*}
+    Similarly as above, we define the following matrices
+
+    \begin{align*}
+        V &= \begin{bmatrix} V_1 V_2 \end{bmatrix}\\
+        T &= \begin{bmatrix} 
+            T_{1,1} & T_{1,2} \\
+            0       & T_{2,2}
+        \end{bmatrix}
+    \end{align*}
+    Where 
+    $$
+    T_{1,2} = T_{1,1}V_1^\top V_2T_{2,2}.
+    $$
+    We see that 
+    \[
+        Q = I - VTV^\top
+    \]
+    \subsection{Existing Behavior}
+    The way that $Q$ is computed in LAPACK is via algorithm \ref{alg:dorgqr}
+
+    \begin{algorithm}
+        \caption{Blocked computation of $Q$}\label{alg:dorgqr}
+        \begin{algorithmic}[1]
+            \STATE Determine blocking parameter $nb$
+            \STATE $Q = I_{m\times n}$
+            \FOR{Each block of size $nb$ of $V$ moving right to left}
+                \STATE (DLARFT) Compute $T$
+                \STATE (DLARFB) Apply $I-V_{nb}TV_{nb}^\top$ to the trailing columns of $Q$
+                \STATE (DORG2R) Apply $I-V_{nb}TV_{nb}^\top$ to itself
+            \ENDFOR
+        \end{algorithmic}
+    \end{algorithm}
+
+    Note: $V_{nb}$ is the current collection of $nb$ reflectors.
+
+    The choice of $nb$ is an open question as to what is considered a ``good'' choice, in practice, $32$ is 
+    the standard. We don't investigate this choice too much, but we offer some pointers to how investigating this choice could be beneficial.
+    \subsection{Places for Optimization}
+    \section{Computation of T}
+    \subsection{Existing Behavior}
+    \subsection{Recursive LARFT}
+    \subsection{Matrix Operation LARFT}
+    \subsection{Numerical Experiments}
+    \subsection{Computational Cost}
+    \section{DLARFB}
+    \subsection{Existing behavior}
+    \subsection{New Behavior}
+    \subsection{Flop Comparison}
+    \section{Main Driver Algorithm}
+    \subsection{Saving Flops on first iteration}
+    \section{DORG2R}
+    \subsection{What it is supposed to do}
+    \subsection{Existing Behavior}
+    \subsection{``Blocked'' equivalent}
+    \section{DORGKR}
+    \subsection{Algorithm Overview}
+    \subsection{Numerical Experiments}
+    \subsection{Computational Cost}
+    \section{Putting it all together}
+    \section{References}
+
 \end{document}
