@@ -24,18 +24,35 @@
     \begin{abstract}
     Computing the Q factor from a sequence of Householder elementary reflections is an important operation for some 
     applications. We present new algorithms which speed up the performance of these operations. In addition, we also 
-    implement existing algorithms originally developed by Puglisi to speed up the computation of the T matrix. We see 
+    implement existing algorithms originally developed by Puglisi~\cite{Puglisi} and Joffrain et al.~\cite{Joff} to speed up the computation of the T matrix. We see 
     performance improvements on the order of 2 to 5 times more efficiency in comparison to the reference LAPACK 
     computations and see similar performance in many cases as the optimized implementation for AMD (AOCL). Using these 
-    schemes we not only see an improvement in execution time, but lowers the memory footprint for the main driver 
+    schemes we not only see an improvement in execution time, but we lower the memory footprint for the main driver 
     algorithm.
     \end{abstract}
+
+
     \section{Preliminaries}
-    We use householder reflectors to represent orthogonal matrices as a product of $k$ many rank one updates to the identity matrix. This means we can write an orthogonal matrix $Q_m\in\R^{m\times m}$ as 
+    A Householder elementary reflection is of the form
+    \begin{equation}\label{eq:Q}
+        \left(I - \tau vv^\top\right)
+    \end{equation}
+    where, in real arithmetic, $\tau$ is $2/\|v\|_2^2$. $v$ can be any nonzero vector 
+    These reflections are used to introduce ``zeros'' in matrices. And typically several of these matrices are applied, one-at-a-time, 
+    to a matrix so that the product of these Householder elementary reflections represent the orthogonal matrix which is applied to
+    the initial matrix. It is important for some applications to explicitly compute this matrix and, in this report, we are interested
+    this computation process. In QR factorization, this orthogonal matrix would be the ``Q factor'' of the QR factorization, this is the 
+    reason why we say ``the Q factor''. The Q factor is computed by LAPACK routines \verb|DORG2R| and \verb|DORGQR|.
+
+    To compute the Q factor, an orthogonal matrix $Q_m\in\R^{m\times m}$, we apply our Householder reflectors to the identity matrix to form:
     \begin{equation}\label{eq:Q}
         Q_m = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_kv_kv_k^\top\right)
     \end{equation}
-    One key note is that if we don't want all $m$ of the columns, we can instead choose a smaller amount denoted $n$ 
+
+    We will assume that the matrix $V$ containing the vectors $v_1$, ..., $v_k$ is unit lower triangular. Which is the case in our applications.
+    Because of this structure, it is more advantageous to apply from the right than from the left.
+    In addition, since we will apply from the right, 
+    we note that if we don't want all $m$ of the columns, we can instead choose a smaller amount denoted $n$ 
     and this lets us get $Q_n\in\R^{m\times n}$ by 
     \begin{equation}\label{eq:Qn}
         Q_n = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_kv_kv_k^\top\right)I_{m\times n}
@@ -56,12 +73,16 @@
         \item $m=n\geq k$
         \item $m\geq n=k$.
     \end{enumerate}
+
+
     \section{DORGQR Overview}
+
     \subsection{Motivation}
-    At a high level, we want to compute this matrix. One method is to compute $Q$ is given by algorithm \ref{alg:dorg2r}
+
+    One method is to compute $Q$ is given by algorithm \ref{alg:dorg2r}
 
     \begin{algorithm}
-        \caption{Column-wise computation of $Q$}\label{alg:dorg2r}
+        \caption{Basic algorithm to compute $Q$}\label{alg:dorg2r}
         \begin{algorithmic}[1]
             \STATE $Q= I_{m\times n}$
             \FOR{$i=k,\dots,1$}
@@ -70,52 +91,70 @@
         \end{algorithmic}
     \end{algorithm}
 
-    A proper implementation of algorithm \ref{alg:dorg2r} will do so via matrix-vector products. While these operations
-    are heavily optimized, we can still gain more by instead trying to use matrix-matrix
-    operations. So, we look at how we can combine a few loops from algorithm \ref{alg:dorg2r}. In order to motivate the general method we first look at the case of $k=2$.
-
-    When this happens, we see that equation \ref{eq:Q} gives us the following
-    \begin{align*}
-        Q &= \left(I-\tau_1v_1v_1^\top\right)\left(I-\tau_2v_2v_2^\top\right) \\
-        &= I - \tau_1v_1v_1^\top - \tau_2v_2v_2^\top + \tau_1\tau_2v_1v_1^\top v_2v_2^\top
-    \end{align*}
-    Defining the matrices
-    \begin{align*}
-        V &= \begin{bmatrix} v_1 & v_2 \end{bmatrix} \\
-        T &= \begin{bmatrix}
-            \tau_1 & \tau_1\tau_2v_1^\top v_2 \\
-            0      & \tau_2
-        \end{bmatrix}
-    \end{align*}
-    We can rewrite above as 
+    A proper implementation of Algorithm~\ref{alg:dorg2r} will do so via matrix-vector products. While these operations
+    are heavily optimized, we can still be more efficient by instead trying to use matrix-matrix
+    operations. We will do so by using the compact WY representation of a product of Householder reflections~\cite{doi:10.1137/0910005}.
+    Given $nb$ reflections, 
+    the compact WY representation constructs a matrix $T$ such that 
     \[
-        Q = I - VTV^\top
+        I - VTV^\top = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_{nb}v_{nb}v_{nb}^\top\right).
     \]
-    In fact, we can extend this even further to the case where we assume we already collected some of our reflectors and we now want to collect these ``blocks''
-    \begin{align*}
-        Q &= \left(I - V_1T_{1,1}V_1^\top\right)\left(I - V_2T_{2,2}V_2^\top\right) \\
-        &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1T_{1,1}V_1^\top V_2T_{2,2}V_2^\top \\
-        &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1\left(T_{1,1}V_1^\top V_2T_{2,2}\right)V_2^\top 
-    \end{align*}
-    Similarly as above, we define the following matrices
+    This representation (on the left) enables us to apply the $nb$ reflections all at once and relies on matrix-matrix multiplications, 
+    as opposed to apply the reflections one at a time and relying on matrix-vector products
 
-    \begin{align*}
-        V &= \begin{bmatrix} V_1 V_2 \end{bmatrix}\\
-        T &= \begin{bmatrix} 
-            T_{1,1} & T_{1,2} \\
-            0       & T_{2,2}
-        \end{bmatrix}
-    \end{align*}
-    Where 
-    $$
-    T_{1,2} = T_{1,1}V_1^\top V_2T_{2,2}.
-    $$
-    We see that 
-    \[
-        Q = I - VTV^\top
-    \]
+    Given a set of $nb$ vectors $V$ and associated $\tau$'s, the LAPACK routine that construct $T$ is \verb|DLARFT|.
+    Given a set of $nb$ vectors $V$ and associated $T$, the LAPACK routine that applies $I - VTV^\top$ to a matrix is \verb|DLARFB|.
+
+%   In order to explain the compact WY representation, we first look at the case of $k=2$.
+%
+%   When this happens, we see that Equation~(\ref{eq:Q}) gives us the following
+%   \begin{align*}
+%       Q &= \left(I-\tau_1v_1v_1^\top\right)\left(I-\tau_2v_2v_2^\top\right) \\
+%       &= I - \tau_1v_1v_1^\top - \tau_2v_2v_2^\top + \tau_1\tau_2v_1v_1^\top v_2v_2^\top
+%   \end{align*}
+%   Defining the matrices
+%   \begin{align*}
+%       V &= \begin{bmatrix} v_1 & v_2 \end{bmatrix} \\
+%       T &= \begin{bmatrix}
+%           \tau_1 & \tau_1\tau_2v_1^\top v_2 \\
+%           0      & \tau_2
+%       \end{bmatrix}
+%   \end{align*}
+%   We can rewrite above as 
+%   \[
+%       Q = I - VTV^\top
+%   \]
+%   In fact, we can extend this even further to the case where we assume we already collected some of our reflectors and we now want to collect these ``blocks''
+%   \begin{align*}
+%       Q &= \left(I - V_1T_{1,1}V_1^\top\right)\left(I - V_2T_{2,2}V_2^\top\right) \\
+%       &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1T_{1,1}V_1^\top V_2T_{2,2}V_2^\top \\
+%       &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1\left(T_{1,1}V_1^\top V_2T_{2,2}\right)V_2^\top 
+%   \end{align*}
+%   Similarly as above, we define the following matrices
+%
+%   \begin{align*}
+%       V &= \begin{bmatrix} V_1 V_2 \end{bmatrix}\\
+%       T &= \begin{bmatrix} 
+%           T_{1,1} & T_{1,2} \\
+%           0       & T_{2,2}
+%       \end{bmatrix}
+%   \end{align*}
+%   Where 
+%   $$
+%   T_{1,2} = T_{1,1}V_1^\top V_2T_{2,2}.
+%   $$
+%   We see that 
+%   \[
+%       Q = I - VTV^\top
+%   \]
+%
+%   Given a $V$ and associated $\tau$, the LAPACK routine that construct $T$ is \verb|DLARFT|.
+
+
+
     \subsection{Existing Behavior}
-    The way that $Q$ is computed in LAPACK is via algorithm \ref{alg:dorgqr}
+
+    The way that $Q$ is computed in LAPACK is via Algorithm~\ref{alg:dorgqr}.
 
     \begin{algorithm}
         \caption{Blocked computation of $Q$}\label{alg:dorgqr}
@@ -132,23 +171,25 @@
 
     Note: $V_{nb}$ is the current collection of $nb$ reflectors.
 
-    The choice of $nb$ is an open question as to what is considered a ``good'' choice, in practice, $32$ is 
-    the standard\footnote{To determine your own machine's block size for a given routine, see the interface for 
+    The parameter $nb$ should be tuned for enabling good performance. The default value for $nb$ in the reference LAPACK library is $32$.
+\footnote{To determine your own machine's block size for a given routine, see the interface for 
     \verb+ilaenv+ and call this function}. We don't investigate this choice much in this report, but we offer 
     some pointers to how investigating this choice could be beneficial.
+
     \subsection{Places for Optimization}
-    Looking at algorithm \ref{alg:dorgqr}, we see $4$ main options for efficiency improvements. 
+    Looking at Algorithm~\ref{alg:dorgqr}, we see four main opportunities for efficiency improvements. 
     \begin{enumerate}
         \item Improving the algorithm used inside \verb|DLARFT|
         \item Creating a specialized version of \verb|DLARBF|
         \item Rewriting the first iteration to exploit the fact that $Q$ was initialized as the identity.
         \item Replacing the call to \verb|DORG2R| with a call to a specialized block application to exploit $T$
     \end{enumerate}
-    \section{Computation of T}
+
+    \section{Computation of T}\label{sec:larft}
     Before we discuss the improvement of \verb|DLARFT|, we first motivate the current behavior which we will
     extend.
     
-    Looking back at equation $\ref{eq:Q}$, we first consider the case of $k=2$, and see:
+    Looking back at Equation~($\ref{eq:Q}$), we first consider the case of $k=2$, and see:
     \begin{align*}
         Q_m &= \left(I - \tau_1v_1v_1^\top\right)\left(I - \tau_2v_2v_2^\top\right) \\
             &= I - \tau_1v_1v_1^\top - \tau_2v_2v_2^\top + \tau_1v_1v_1^\top\tau_2v_2v_2^\top \\
@@ -160,7 +201,7 @@
             T &= \begin{bmatrix} \tau_1 & \tau_1\tau_2v_1^\top v_2 \\
             0 & \tau_2\end{bmatrix}.
     \end{align*}
-    Then, we can rewrite equation \ref{eq:Q} as 
+    Then, we can rewrite Equation~(\ref{eq:Q}) as 
     \begin{equation}\label{eq:blockedQ}
         Q_m = I - VTV^\top.
     \end{equation}
@@ -186,6 +227,8 @@
     \begin{equation}\label{eq:T12}
         T_{1,2} = T_{1,1}V_1^\top V_2T_{2,2}
     \end{equation}
+
+
     \subsection{Existing Behavior}
     The current implementation of \verb|DLARFT| (as of LAPACK version 3.12) computes $T$ via equations 
     \ref{eq:tMat} and \ref{eq:T12} but with either $T_{1,1}$ or $T_{2,2}$ of size $1\times 1$ (depending on the direction called). We will present the behavior for the case when $T_{1,1}\in\R^{1\times 1}$ in algorithm \ref{alg:refDLARFT}.
@@ -315,8 +358,8 @@
 
     \subsection{Numerical Experiments}
     We ran numerical experiments on the \href{https://ccm-docs.readthedocs.io/en/latest/alderaan/#hardware}{cluster}
-    here at CUDenver. We can see the performance in figure \ref{fig:DLARFT}. The key takeaway is that our new
-    scheme is roughly 3 times more performant than existing algorithms inside LAPACK as well as AOCL.
+    here at CU Denver. We can see the performance in figure \ref{fig:DLARFT}. The key takeaway is that our new
+    scheme achieves roughly 3 times more performance than existing algorithms inside LAPACK as well as AOCL.
     \begin{figure}
         \centering
         \includegraphics[width=.45\textwidth]{figures/timeDLARFT.pdf}
