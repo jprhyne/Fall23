@@ -10,6 +10,7 @@
 
 \renewcommand{\algorithmicrequire}{\textbf{Inputs:}}
 %\renewcommand{\algorithmiccomment}[1]{// #1}
+\newcommand{\nb}{b}
 \VerbatimFootnotes
 
 \title{Optimizing Computing the $Q$ Factor in LAPACK}
@@ -37,11 +38,11 @@
     \begin{equation}\label{eq:Q}
         \left(I - \tau vv^\top\right)
     \end{equation}
-    where, in real arithmetic, $\tau$ is $2/\|v\|_2^2$. $v$ can be any nonzero vector 
+    where, in real arithmetic, $\tau$ is $2/\|v\|_2^2$. $v$ can be any nonzero vector.
     These reflections are used to introduce ``zeros'' in matrices. And typically several of these matrices are applied, one-at-a-time, 
     to a matrix so that the product of these Householder elementary reflections represent the orthogonal matrix which is applied to
-    the initial matrix. It is important for some applications to explicitly compute this matrix and, in this report, we are interested
-    this computation process. In QR factorization, this orthogonal matrix would be the ``Q factor'' of the QR factorization, this is the 
+    the initial matrix either from the left or from the right. It is important for some applications to explicitly compute this orthogonal matrix and, in this report, we are interested in
+    this computation process. In a QR factorization, this orthogonal matrix would be the ``Q factor'' of the QR factorization. This is the 
     reason why we say ``the Q factor''. The Q factor is computed by LAPACK routines \verb|DORG2R| and \verb|DORGQR|.
 
     To compute the Q factor, an orthogonal matrix $Q_m\in\R^{m\times m}$, we apply our Householder reflectors to the identity matrix to form:
@@ -52,7 +53,7 @@
     We will assume that the matrix $V$ containing the vectors $v_1$, ..., $v_k$ is unit lower triangular. Which is the case in our applications.
     Because of this structure, it is more advantageous to apply from the right than from the left.
     In addition, since we will apply from the right, 
-    we note that if we don't want all $m$ of the columns, we can instead choose a smaller amount denoted $n$ 
+    we note that, if we don't want all $m$ of the columns, we can instead choose a smaller amount denoted $n$ 
     and this lets us get $Q_n\in\R^{m\times n}$ by 
     \begin{equation}\label{eq:Qn}
         Q_n = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_kv_kv_k^\top\right)I_{m\times n}
@@ -60,26 +61,28 @@
     Where the $i,j$th element of $I_{m\times n}$ is given by:
     \begin{equation*}
         I_{m\times n}(i,j) = \begin{cases}
-            1 & 1\leq i = j\leq n\\
-            0 & \text{otherwise}
+            1 & 1\leq i = j\leq n,\\
+            0 & \text{otherwise}.
         \end{cases}
     \end{equation*}
     Throughout this discussion, we will omit the subscripts, and instead we will be assuming the size to be 
     what makes sense in context. In general, algorithms will compute $Q_n$ while our theory will discuss computing $Q_m$. 
-    and we will assume that $m\geq n\geq k$.
 
-    We are mostly interested in the following $2$ cases
+    We will always have that $$m\geq n\geq k.$$
+
+    We are mostly interested in the following two cases
     \begin{enumerate}
         \item $m=n\geq k$
         \item $m\geq n=k$.
     \end{enumerate}
-
+    In other words, either $n$ is $m$ or $n$ is $k$. The case $m>n>k$ is made possible because it is easily handled, but it does not seem
+    that it has many applications.
 
     \section{DORGQR Overview}
 
     \subsection{Motivation}
 
-    One method is to compute $Q$ is given by algorithm \ref{alg:dorg2r}
+    One method to compute $Q$ is given by Algorithm~\ref{alg:dorg2r}
 
     \begin{algorithm}
         \caption{Basic algorithm to compute $Q$}\label{alg:dorg2r}
@@ -91,19 +94,19 @@
         \end{algorithmic}
     \end{algorithm}
 
-    A proper implementation of Algorithm~\ref{alg:dorg2r} will do so via matrix-vector products. While these operations
-    are heavily optimized, we can still be more efficient by instead trying to use matrix-matrix
+    A straightforward implementation of Algorithm~\ref{alg:dorg2r} will do so via matrix-vector products. While matrix-vector products
+    are heavily optimized, they are intrinsically memory bound, and we can be more efficient by instead trying to use matrix-matrix
     operations. We will do so by using the compact WY representation of a product of Householder reflections~\cite{doi:10.1137/0910005}.
-    Given $nb$ reflections, 
+    Given $\nb$ reflections, 
     the compact WY representation constructs a matrix $T$ such that 
     \[
-        I - VTV^\top = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_{nb}v_{nb}v_{nb}^\top\right).
+        I - VTV^\top = \left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_{\nb}v_{\nb}v_{\nb}^\top\right).
     \]
-    This representation (on the left) enables us to apply the $nb$ reflections all at once and relies on matrix-matrix multiplications, 
-    as opposed to apply the reflections one at a time and relying on matrix-vector products
+    The $I - VTV^\top$ representation enables us to apply the $\nb$ reflections all at once and relies on matrix-matrix multiplications, 
+    as opposed to apply the reflections one at a time and relying on matrix-vector products with $\left(I - \tau_1 v_1v_1^\top\right)\cdots\left(I - \tau_{\nb}v_{\nb}v_{\nb}^\top\right)$.
 
-    Given a set of $nb$ vectors $V$ and associated $\tau$'s, the LAPACK routine that construct $T$ is \verb|DLARFT|.
-    Given a set of $nb$ vectors $V$ and associated $T$, the LAPACK routine that applies $I - VTV^\top$ to a matrix is \verb|DLARFB|.
+    Given a set of $\nb$ vectors $V$ and associated $\tau$'s, the LAPACK routine \verb|DLARFT| constructs $T$.
+    Given a set of $\nb$ vectors $V$ and associated $T$, the LAPACK routine \verb|DLARFB| applies $I - VTV^\top$ to a matrix.
 
 %   In order to explain the compact WY representation, we first look at the case of $k=2$.
 %
@@ -159,25 +162,28 @@
     \begin{algorithm}
         \caption{Blocked computation of $Q$}\label{alg:dorgqr}
         \begin{algorithmic}[1]
-            \STATE Determine blocking parameter $nb$
+            \STATE Determine blocking parameter $\nb$
             \STATE $Q = I_{m\times n}$
-            \FOR{Each block of size $nb$ of $V$ moving right to left}
+            \FOR{Each block of size at most $\nb$ of $V$ moving right to left}
                 \STATE (\verb|DLARFT|) Compute $T$
-                \STATE (\verb|DLARFB|) Apply $I-V_{nb}TV_{nb}^\top$ to the trailing columns of $Q$
-                \STATE (\verb|DORG2R|) Apply $I-V_{nb}TV_{nb}^\top$ to itself
+                \STATE (\verb|DLARFB|) Apply $I-V_{\nb}TV_{\nb}^\top$ to the trailing columns of $Q$
+                \STATE (\verb|DORG2R|) Apply $I-V_{\nb}TV_{\nb}^\top$ to itself
             \ENDFOR
         \end{algorithmic}
     \end{algorithm}
 
-    Note: $V_{nb}$ is the current collection of $nb$ reflectors.
+    Note: $V_{\nb}$ is the current collection of $\nb$ reflectors.
 
-    The parameter $nb$ should be tuned for enabling good performance. The default value for $nb$ in the reference LAPACK library is $32$.
-\footnote{To determine your own machine's block size for a given routine, see the interface for 
-    \verb+ilaenv+ and call this function}. We don't investigate this choice much in this report, but we offer 
+    The parameter $\nb$ should be tuned for enabling good performance. The default value for $\nb$ in the reference LAPACK library is $32$.
+%\footnote{To determine your own machine's block size for a given routine, see the interface for 
+%\verb+ilaenv+ and call this function}. 
+To determine your own machine's block size for a given routine, see the interface for 
+    \verb+ilaenv+ and call this function.
+We don't investigate this choice much in this report, but we offer 
     some pointers to how investigating this choice could be beneficial.
 
     \subsection{Places for Optimization}
-    Looking at Algorithm~\ref{alg:dorgqr}, we see four main opportunities for efficiency improvements. 
+    Looking at Algorithm~\ref{alg:dorgqr}, we see four main opportunities for efficiency improvements:
     \begin{enumerate}
         \item Improving the algorithm used inside \verb|DLARFT|
         \item Creating a specialized version of \verb|DLARBF|
@@ -217,21 +223,20 @@
             &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1T_{1,1}V_1^\top V_2T_{2,2}V_2^\top \\
             &= I - V_1T_{1,1}V_1^\top - V_2T_{2,2}V_2^\top + V_1\left(T_{1,1}V_1^\top V_2T_{2,2}\right)V_2^\top
     \end{align*}
-    Which then lets us recover equation \ref{eq:Q} where
+    Which then lets us recover Equation~(\ref{eq:Q}) where
     \begin{align}
         V &= \begin{bmatrix} V_1 & V_2 \end{bmatrix} \label{eq:vMat} \\
         T &= \begin{bmatrix} T_{1,1} & T_{1,2} \\
         0 & T_{2,2}\end{bmatrix} \label{eq:tMat}
     \end{align}
-    where $T_{1,2}$ is given by equation \ref{eq:T12}.
+    where $T_{1,2}$ is given by Equation~(\ref{eq:T12}).
     \begin{equation}\label{eq:T12}
         T_{1,2} = T_{1,1}V_1^\top V_2T_{2,2}
     \end{equation}
 
 
     \subsection{Existing Behavior}
-    The current implementation of \verb|DLARFT| (as of LAPACK version 3.12) computes $T$ via equations 
-    \ref{eq:tMat} and \ref{eq:T12} but with either $T_{1,1}$ or $T_{2,2}$ of size $1\times 1$ (depending on the direction called). We will present the behavior for the case when $T_{1,1}\in\R^{1\times 1}$ in algorithm \ref{alg:refDLARFT}.
+    The current implementation of \verb|DLARFT| (as of LAPACK version 3.12) computes $T$ via Equation~(\ref{eq:tMat}) and Equation~(\ref{eq:T12}) but with either $T_{1,1}$ or $T_{2,2}$ of size $1\times 1$ (depending on the direction called). We will present the behavior for the case when $T_{1,1}\in\R^{1\times 1}$ in Algorithm~\ref{alg:refDLARFT}.
 
     \begin{algorithm}
         \caption{Reference DLARFT}\label{alg:refDLARFT}
@@ -261,7 +266,7 @@
                 \STATE $T(1,1) = \tau_1$
                 \RETURN
             \ENDIF
-            \STATE $k = \frac{n}{2}$\hfill\COMMENT{Round down if needed}
+            \STATE $k = \lceil\frac{n}{2}\rceil$%\hfill\COMMENT{Round down if needed}
             \STATE $V_1 = V(:,1:k)$
             \STATE $V_2 = V(:,k+1:n)$
             \STATE Compute $T_{1,1}$ by calling this routine with $V_1$, $T(1:k,1:k)$, and $\tau(1:k)$
@@ -273,7 +278,7 @@
         \end{algorithmic}
     \end{algorithm}
 
-    A visual representation of what this algorithm does can be seen in figures \ref{fig:recCall} and \ref{fig:termCase}
+    A visual representation of what this algorithm does can be seen in Figure~\ref{fig:recCall} and Figure~\ref{fig:termCase}.
 
     \begin{figure}
         \begin{center}
@@ -302,7 +307,7 @@
     \end{center}
         \caption{Visual representation of the $2^\text{nd}$ layer in recursively computing $T$. The blue triangles
         work together to compute the orange portions. Then the triangles made by combining the blue and orange
-        pieces finally compute the green piece}\label{fig:recCall}
+        pieces finally compute the green piece}\label{fig:recCall}.
     \end{figure}
     \begin{figure}
         \begin{center}
@@ -330,7 +335,7 @@
         \end{tikzpicture}
         \end{center}
         \caption{Visual representation of the terminating case in recursively computing $T$. Each of these blue
-        triangles are set using our $\tau$ vector}\label{fig:termCase}
+        triangles are set using our $\tau$ vector}\label{fig:termCase}.
     \end{figure}
     \subsection{Matrix Operation LARFT}
     \begin{theorem}\label{thm:Puglisi}
@@ -358,7 +363,7 @@
 
     \subsection{Numerical Experiments}
     We ran numerical experiments on the \href{https://ccm-docs.readthedocs.io/en/latest/alderaan/#hardware}{cluster}
-    here at CU Denver. We can see the performance in figure \ref{fig:DLARFT}. The key takeaway is that our new
+    here at CU Denver. We can see the performance in Figure~\ref{fig:DLARFT}. The key takeaway is that our new
     scheme achieves roughly 3 times more performance than existing algorithms inside LAPACK as well as AOCL.
     \begin{figure}
         \centering
@@ -393,7 +398,7 @@
             V &= \begin{bmatrix} V_1 \\ V_2 \end{bmatrix} \label{eq:vMatVert} \\
             C &= \begin{bmatrix} C_1 \\ C_2 \end{bmatrix} \label{eq:cMatVert}
         \end{align}
-        Where $V_1\in\R^{k\times k}$ is unit lower triangular, and $C_1\in\R^{n\times n}$.
+        Where $V_1\in\R^{k\times k}$ is unit lower triangular, and $C_1\in\R^{k\times n}$.
 
         By substituting in this breaking down of $C$ and $V$ into our equation $C = HC$, we can write each of the
         components as follows
@@ -404,7 +409,7 @@
         Looking at this characterization, we can see that if we can exploit some fact of $C$ then we 
         can potentially help out our main driver.
 
-        The current implementation is given by algorithm \ref{alg:refDLARFB}
+        The current implementation is given by Algorithm~\ref{alg:refDLARFB}
         \begin{algorithm}
             \caption{Reference DLARFB}\label{alg:refDLARFB}
             \begin{algorithmic}[1]
@@ -420,12 +425,12 @@
             \end{algorithmic}
         \end{algorithm}
         
-        However, for us, we get that $C_1$ is identically $0$, so lets try to exploit it, which we do in 
-        algorithm \ref{alg:DLARFB0C2}
+        However, for us, we get that $C_1$ is identically $0$, so let us try to exploit it, which we do in 
+        Algorithm~\ref{alg:DLARFB0C2}
     \subsection{New Behavior}
-    Since we get from algorithm \ref{alg:dorgqr} that $C_1 = 0$, it is of the same size as $W$ from 
-    algorithm \ref{alg:refDLARFB}, and we will be overwriting it anyway, we can actually use this 
-    region as a workspace, which gives us algorithm \ref{alg:DLARFB0C2}.
+    Since we get from Algorithm~\ref{alg:dorgqr} that $C_1 = 0$, it is of the same size as $W$ from 
+    Algorithm~\ref{alg:refDLARFB}, and we will be overwriting it anyway, we can actually use this 
+    region as a workspace, which gives us Algorithm~\ref{alg:DLARFB0C2}.
     \begin{algorithm}
         \caption{DLARFB\_0C2}\label{alg:DLARFB0C2}
         \begin{algorithmic}[1]
@@ -438,12 +443,14 @@
     \end{algorithm}
     This saves a call to \verb|DTRMM| and \verb|DGEMM|.
     \subsection{Flop Comparison}
-        For these two different versions, we get the following computation cost for $V\in\R^{m\times k}$, $T\in\R^{k\times k}$, and $C\in\R^{m\times n}$.\footnote{Note: In our actual loops, we grow $m$ and $n$, and $k$ is the blocking parameter usually just set to $32$.}
+        For these two different versions, we get the following computation cost for $V\in\R^{m\times k}$, $T\in\R^{k\times k}$, and $C\in\R^{m\times n}$.
+%\footnote{
+Note: In our actual loops, we grow $m$ and $n$, and $k$ is the blocking parameter usually just set to $32$.%}
         \begin{align*}
             \text{DLARFB: }&\, 4mnk - nk^2 + nk\\
             \text{DLARFB\_0C2: }&\, 4mnk - 2nk^2
         \end{align*}
-        In addition to our memory savings, we also have a slight computation improvement. We don't see
+        In addition to our memory savings, we also have a slight computation improvement. We do not see
         much of this benefit in computational cost in practice though. Note: we are also linear in $m$ and
         $n$, so we scale well when we treat $k$ as a small blocking parameter
     \subsection{Numerical Experiments}
@@ -454,14 +461,14 @@
             \caption{Comparison of our specialized DLARFB to existing DLARFB calls}\label{fig:DLARFB}
         \end{figure}
 
-        In figure \ref{fig:DLARFB}, we see that while we don't have much of a performance increase,
+        In Figure~\ref{fig:DLARFB}, we see that while we do not have much of a performance increase,
         we see the advantage in no longer needing a workspace, which is a benefit we will see the 
-        consequences of more so in figure \ref{fig:DORGKR} where we can take advantage of investigating
+        consequences of more so in Figure~\ref{fig:DORGKR} where we can take advantage of investigating
         increasing the block sizes.
     \section{Main Driver Algorithm}
     \subsection{Saving Flops on first iteration}
-    If we refer back to algorithms \ref{alg:refDLARFB} and \ref{alg:DLARFB0C2}, we see that if we can also
-    use the fact that $C_2=I$, we can save even more operations! Algorithm \ref{alg:DLARFBInit} shows what we 
+    If we refer back to Algorithm~\ref{alg:refDLARFB} and Algorithm~\ref{alg:DLARFB0C2}, we see that if we can also
+    use the fact that $C_2=I$, we can save even more operations! Algorithm~\ref{alg:DLARFBInit} shows what we 
     need to do in this case.
     
     \begin{algorithm}
@@ -473,10 +480,10 @@
         \end{algorithmic}
     \end{algorithm}
     
-    In comparison to algorithm \ref{alg:DLARFB0C2}, we save a call to \verb|DGEMM|, which is the most expensive 
-    call inside \verb|DLARFB|. To be more precise, if we have a block of size $nb$ then we save
+    In comparison to Algorithm~\ref{alg:DLARFB0C2}, we save a call to \verb|DGEMM|, which is the most expensive 
+    call inside \verb|DLARFB|. To be more precise, if we have a block of size $\nb$ then we save
     \[
-        2nb\left(m-k\right)\left(n-k\right)
+        2\nb\left(m-k\right)\left(n-k\right)
     \]
     In our case, this is usually $32$, so we save
     \[
@@ -487,7 +494,7 @@
     In the case of $m=n\geq k$ we have the opportunity for this specialization to lead to some interesting
     performance improvements.
     \section{DORG2R}
-    When we employ algorithm \ref{alg:dorg2r} we are usually doing so via calling the routine \verb|DORG2R|
+    When we employ Algorithm~\ref{alg:dorg2r}, we are usually doing so via calling the routine \verb|DORG2R|
     For our case, we are using this routine in order to compute the columns of the block we are currently 
     working on. However, we end up needing to recompute some of our information inside of $T$. So, if we want to
     instead use this information we already have, we get our algorithm discussed in the next section.
@@ -496,11 +503,11 @@
     We want to compute the matrix $Q_n$ given by equation \ref{eq:Qn}. Notice that this is slightly different than
     before where we wanted to have our theory apply to the full $Q$. Since we only want to compute our current
     panel, we don't want to consider any columns passed $n$ at all. Our algorithm is given by 
-    algorithm \ref{alg:dorgkr}. We will be assuming that we no longer need to keep $T$ as we call this routine
-    at the end of our loop in algorithm \ref{alg:dorgqr}, so it will be recomputed when the loop is restarted.
+    Algorithm~\ref{alg:dorgkr}. We will be assuming that we no longer need to keep $T$ as we call this routine
+    at the end of our loop in Algorithm~\ref{alg:dorgqr}, so it will be recomputed when the loop is restarted.
 
     In addition, we will need $V\in\R^{m\times n}, T\in\R^{n\times n}$. So we break up $V$ as in equation 
-    \ref{eq:vMatVert}, and $Q$ similarly to equation \ref{eq:cMatVert}.
+    \ref{eq:vMatVert}, and $Q$ similarly to Equation~\ref{eq:cMatVert}.
     \begin{algorithm}
         \caption{DORGKR}\label{alg:dorgkr}
         \begin{algorithmic}[1]
@@ -537,21 +544,21 @@
         $$
         We see an improvement for a factor of $2$, which is non-negligible, which is due to the fact that we are exploiting information from $T$.
 
-        We should note that the sizes used within our routine are relatively small, so we won't see 
+        We should note that the sizes used within our routine are relatively small, so we will not see 
         this improvement much when we put it all together
     \section{Putting it all together}
-    Putting all of our new pieces together leaves us with a modified version of algorithm \ref{alg:dorgqr}, which
-    is given by algorithm \ref{alg:myDorgqr}.
+    Putting all of our new pieces together leaves us with a modified version of Algorithm~\ref{alg:dorgqr}, which
+    is given by Algorithm~\ref{alg:myDorgqr}.
     \begin{algorithm}
         \caption{New DORGQR}\label{alg:myDorgqr}
         \begin{algorithmic}[1]
-            \STATE Determine blocking parameter $nb$
+            \STATE Determine blocking parameter $\nb$
             \STATE $Q = I_{m\times n}$
             \STATE Compute the columns of $Q$ with \verb|DLARFB_0I|
-            \FOR{Each block of size $nb$ of $V$ moving right to left}
+            \FOR{Each block of size $\nb$ of $V$ moving right to left}
                 \STATE (algorithm \ref{alg:UTDLARFT}) Compute $T$
-                \STATE (\verb|DLARFB_0C2|) Apply $I-V_{nb}TV_{nb}^\top$ to the trailing columns of $Q$
-                \STATE (\verb|DORGKR|) Apply $I-V_{nb}TV_{nb}^\top$ to itself
+                \STATE (\verb|DLARFB_0C2|) Apply $I-V_{\nb}TV_{\nb}^\top$ to the trailing columns of $Q$
+                \STATE (\verb|DORGKR|) Apply $I-V_{\nb}TV_{\nb}^\top$ to itself
             \ENDFOR
         \end{algorithmic}
     \end{algorithm}
@@ -565,14 +572,14 @@
         \centering
             \includegraphics[width=.45\textwidth]{figures/timeDORGQR.pdf}
             \includegraphics[width=.45\textwidth]{figures/flopDORGQR.pdf}
-        \caption{Comparison of algorithms \ref{alg:dorgqr} and \ref{alg:myDorgqr} when $m\geq n=k$}\label{fig:dorgqr}
+        \caption{Comparison of Algorithm~\ref{alg:dorgqr} and Algorithm~\ref{alg:myDorgqr} when $m\geq n=k$}\label{fig:dorgqr}
     \end{figure}
     \begin{figure}
         \centering
             \includegraphics[width=.45\textwidth]{figures/timeDORGQRSquare.pdf}
             \includegraphics[width=.45\textwidth]{figures/flopDORGQRSquare.pdf}
         \caption{Comparison of algorithms \ref{alg:dorgqr} and \ref{alg:myDorgqr} when $m=n\geq k$. 
-        We see some odd behavior here especially in regards to the timing graph as we don't see an increase 
+        We see some odd behavior here especially in regards to the timing graph as we do not see an increase 
         in execution time for larger problems, which would be expected}\label{fig:dorgqrSquare}
     \end{figure}
     \section{Source Code}
