@@ -11,6 +11,7 @@
 \renewcommand{\algorithmicrequire}{\textbf{Inputs:}}
 %\renewcommand{\algorithmiccomment}[1]{// #1}
 \newcommand{\nb}{b}
+\date{}
 \VerbatimFootnotes
 
 \title{Optimizing Computing the $Q$ Factor in LAPACK}
@@ -358,6 +359,7 @@ We don't investigate this choice much in this report, but we offer
             \FOR{ $i=1,\cdots n$ }
                 \STATE $T(i,i) = \frac{T(i,i)}{2}$
             \ENDFOR
+            \STATE $T=T^{-1}$
         \end{algorithmic}
     \end{algorithm}
 
