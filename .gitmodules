@@ -1,0 +1,3 @@
+[submodule "xor-xungqr"]
+	path = xor-xungqr
+	url = git@github.com:jprhyne/xor-xungqr.git
